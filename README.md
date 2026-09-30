@@ -11,15 +11,12 @@ npm ci
 npm run dev
 ```
 
-1. Owlbear-Profil → Extensions → Add Extension.
-2. Installationslink: `http://localhost:5173/manifest.json`.
-3. Extension in einem Test-Raum aktivieren, als GM öffnen.
-4. Im Prep-Popover lokale Karte wählen → „Kartenszene anlegen“. Owlbear fragt den Zielordner. Danach die neue Szene selbst öffnen und Raster/Skalierung prüfen.
-5. Ursprungskarte wählen (Liste der Kartenbilder im MAP-Layer; bei nur einer Karte automatisch). Testplan prüfen.
-   Monster: Namen hinzufügen oder „Aus Plan übernehmen“. Je Monster Token-Bild und Statblock-Screenshot wählen; HP/RK werden per OCR (tesseract.js, im Browser) gelesen und sind editierbar. „Bilder in Owlbear hochladen“ öffnet einen Upload-Dialog für alle Bilder, danach im Auswahldialog alle „Prep …“-Bilder markieren. Plan-Monster finden ihren Eintrag über `type` (sonst `name`).
-6. „Aktuelle Szene ist meine Testszene“ bestätigen → „In aktueller Szene aufbauen“.
-7. Drei verborgene Gegner, HP/RK (Stat Bubbles bei Bild-Tokens, sonst Beschriftung) und schwarzen Sichtblock prüfen. Über „Aufdecken“ den Block verbergen. Gegner bei Bedarf separat sichtbar machen.
-8. „Diesen Plan entfernen“ entfernt nur Elemente mit der aktuellen Plan-ID, auch nach erneutem Öffnen des Popovers. Die Karte bleibt bestehen.
+1. Owlbear-Profil → Extensions → Add Extension, Installationslink `http://localhost:5173/manifest.json`. Extension im Raum aktivieren und als GM öffnen („Prep“ in der oberen Leiste).
+2. **Karten:** Spielerkarte als Szene (ggf. über „Spielerkarte als neue Szene anlegen“), Raster auf die gedruckten Kästchen ausrichten. DM-Karte mit Raumnummern als zweites Kartenbild daneben legen und unsichtbar machen. Im Popover beide Karten auswählen.
+3. **Abenteuer:** Abenteuerdatei (Markdown, D&D-Beyond-Export) wählen, Dungeon übernehmen. Pro Raum Monster/Anzahl prüfen; mit „Markieren“ jede Stelle des Raums auf der DM-Karte anklicken (Werkzeug „Prep: Bereiche markieren“).
+4. **Monster:** „Monster aus dem Abenteuer übernehmen“, je Monster Tokenbild und Statblock-Screenshot wählen (HP/RK/Größe werden gelesen, prüfen), „Bilder in Owlbear hochladen“ und im Auswahldialog die „Prep …“-Bilder markieren.
+5. **Plan:** „Plan erzeugen“ (optional als JSON speichern oder ansehen/einfügen).
+6. **Aufbauen:** Szene bestätigen, „In dieser Szene aufbauen“. Alles ist verborgen; „Plan entfernen“ löscht nur Elemente dieses Plans. Duplikate (Alt+Drag) werden automatisch weiter nummeriert.
 
 Der lokale Server läuft auf DEINEM Computer. Ein Server in einer entfernten Coding-Umgebung ist nicht dein localhost. Kein Öffnen per Doppelklick/file://. Falls der Browser eine lokale Netzwerkfreigabe verlangt, für diese Entwicklungsverbindung erlauben. Die Extension muss nur beim DM laufen; Szenenelemente liegen in Owlbear. Verwendete Bilder kommen aus Owlbear, nicht von lokalen Bild-URLs.
 

@@ -1,1 +1,72 @@
-<!doctype html><html lang="de"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Owlbear Prep</title><style>body{font:15px system-ui;background:#172128;color:#edf3ed;margin:20px}h1{font-size:24px;margin-bottom:4px}p{line-height:1.5;color:#bacbc9}button{background:#b8edb0;color:#14201b;border:0;border-radius:7px;padding:11px;margin:4px 4px 4px 0;cursor:pointer}button:disabled{opacity:.4;cursor:default}textarea{box-sizing:border-box;width:100%;height:190px;background:#0d161c;color:#d3e9de;border:1px solid #50665f;border-radius:6px;padding:10px}pre{white-space:pre-wrap;font:13px system-ui}#status{padding:12px;background:#26383a;border-radius:6px;position:sticky;top:0;z-index:1;box-shadow:0 4px 8px #172128}label{display:block;margin:12px 0}fieldset{border:1px solid #50665f;border-radius:6px;margin:8px 0;padding:8px}legend{font-weight:600}fieldset label{margin:4px 0}.row{display:flex;gap:4px;flex-wrap:wrap;align-items:center}input[type=number]{width:60px}#newName{flex:1;min-width:140px;padding:9px}.ok{color:#b8edb0}.warn{color:#f0c987}</style><h1>Owlbear Prep</h1><p>Lokaler Durchstich · Plan prüfen und in einer leeren Testszene aufbauen.</p><div id="status" role="status">Ohne Owlbear: Planprüfung möglich.</div><p>1. Karte als neue Szene hochladen, anschließend in Owlbear öffnen.</p><input id="map" type="file" accept="image/png,image/jpeg,image/webp"><button id="upload" disabled>Kartenszene anlegen</button><label>2. Ursprungskarte (Kartenbilder im MAP-Layer). Plan-Koordinaten zählen Rasterfelder ab ihrer oberen linken Ecke.<br><select id="mapSel"><option value="">Keine Karte gefunden</option></select></label><p>3. Abenteuertext: Markdown-Datei (D&D-Beyond-Export) laden, Dungeon wählen, Monster je Bereich prüfen. DM-Karte (zweites Kartenbild) wählen und Bereiche darauf per Klick markieren – jede Stelle einmal.</p><input id="advFile" type="file" accept=".md,.txt,text/markdown,text/plain"><div class="row"><select id="dungeon"><option value="">– erst Datei laden –</option></select><button id="takeDungeon">Dungeon übernehmen</button></div><label>DM-Karte<br><select id="dmSel"><option value="">Keine Karte gefunden</option></select></label><div id="areas"></div><div class="row"><button id="toRoster">Monster in Monsterliste übernehmen</button><button id="makePlan">Plan erzeugen</button><button id="savePlan">Plan als JSON speichern</button></div><p>Plan (wird erzeugt oder eingefügt). Testwerte sind keine D&D-Statblocks.</p><textarea id="plan" aria-label="Szenenplan"></textarea><button id="validate">Plan prüfen</button><pre id="summary"></pre><p>4. Monster. Name wie in Beschreibung/Plan (<code>type</code> oder <code>name</code>). Pro Monster Token und Statblock-Screenshot wählen; HP/RK werden aus dem Screenshot gelesen – bitte prüfen. Danach Bilder in Owlbear hochladen und im Auswahldialog alle „Prep …“-Bilder markieren.</p><div class="row"><input id="newName" placeholder="Monstername, z. B. Gray Ooze" maxlength="80"><button id="add">Hinzufügen</button><button id="fromPlan">Aus Plan übernehmen</button></div><div id="roster"></div><button id="uploadAssets" disabled>Bilder in Owlbear hochladen</button><button id="linkAssets" disabled>Hochgeladene Bilder zuordnen</button><label><input id="confirm" type="checkbox"> Aktuelle Szene ist meine Testszene.</label><button id="build" disabled>In aktueller Szene aufbauen</button><button id="undo" disabled>Diesen Plan entfernen</button><div id="reveals"></div><script type="module" src="/src/main.ts"></script></html>
+<!doctype html><html lang="de"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Owlbear Prep</title>
+<style>
+body{font:14px system-ui;background:#172128;color:#edf3ed;margin:0 16px 20px}
+h1{font-size:20px;margin:14px 0 2px}h2{font-size:15px;margin:0 0 6px;color:#b8edb0}
+p{line-height:1.45;color:#bacbc9;margin:4px 0 8px}.hint{font-size:13px}
+section{border-top:1px solid #33474a;padding:14px 0 6px}
+button,.btn{display:inline-block;background:#b8edb0;color:#14201b;border:0;border-radius:7px;padding:8px 11px;margin:3px 4px 3px 0;cursor:pointer;font:inherit}
+button.secondary{background:#2f4447;color:#edf3ed}button:disabled{opacity:.4;cursor:default}
+select,input[type=text],#newName{box-sizing:border-box;width:100%;padding:7px;border-radius:6px;border:1px solid #50665f;background:#0d161c;color:#edf3ed;font:inherit}
+textarea{box-sizing:border-box;width:100%;height:170px;background:#0d161c;color:#d3e9de;border:1px solid #50665f;border-radius:6px;padding:8px}
+pre{white-space:pre-wrap;font:12px system-ui;color:#bacbc9}
+#status{padding:10px 12px;background:#26383a;border-radius:6px;position:sticky;top:0;z-index:1;box-shadow:0 4px 8px #172128;margin-bottom:8px}
+label{display:block;margin:8px 0}.field{font-size:13px;color:#bacbc9}
+label.file{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0}.fname{color:#bacbc9;font-size:13px}
+fieldset{border:1px solid #50665f;border-radius:6px;margin:8px 0;padding:6px 8px}legend{font-weight:600}fieldset label{margin:4px 0}
+details{margin:6px 0}summary{cursor:pointer;color:#bacbc9}
+.row{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.row select{flex:1;width:auto}
+input[type=number]{width:56px;padding:5px;border-radius:5px;border:1px solid #50665f;background:#0d161c;color:#edf3ed}
+.ok{color:#b8edb0}.warn{color:#f0c987}
+</style>
+<h1>Owlbear Prep</h1>
+<p class="hint">Bereitet eine Abenteuer-Szene vor: Karten, Monster mit Werten, Positionen aus dem Abenteuertext.</p>
+<div id="status" role="status">Ohne Owlbear: Planprüfung möglich.</div>
+
+<section>
+<h2>1 · Karten</h2>
+<p class="hint">Die Spielerkarte ist die Karte, auf der gespielt wird. Die DM-Karte (mit Raumnummern) legst du in Owlbear als zweites Kartenbild daneben und machst sie unsichtbar.</p>
+<label class="field">Spielerkarte<select id="mapSel"><option value="">Keine Karte gefunden</option></select></label>
+<label class="field">DM-Karte mit Raumnummern<select id="dmSel"><option value="">Keine Karte gefunden</option></select></label>
+<details><summary>Noch keine Szene? Spielerkarte als neue Szene anlegen</summary>
+<label class="file"><input id="map" type="file" accept="image/png,image/jpeg,image/webp" hidden><span class="btn">Kartenbild wählen …</span><span class="fname">keine Datei</span></label>
+<button id="upload" disabled>Als neue Szene anlegen</button><p class="hint">Danach die neue Szene in Owlbear öffnen und das Raster auf die gedruckten Kästchen ausrichten.</p>
+</details>
+</section>
+
+<section>
+<h2>2 · Abenteuer</h2>
+<p class="hint">Lade das Abenteuer als Markdown-Datei (D&amp;D-Beyond-Export). Die Extension findet die Dungeons, ihre Räume und die Monster darin.</p>
+<label class="file"><input id="advFile" type="file" accept=".md,.txt,text/markdown,text/plain" hidden><span class="btn">Abenteuerdatei wählen …</span><span class="fname">keine Datei</span></label>
+<div class="row"><select id="dungeon"><option value="">– erst Datei laden –</option></select><button id="takeDungeon">Übernehmen</button></div>
+<p class="hint">Pro Raum: Anzahl und Monster prüfen. „je Punkt“ heißt: ein Monster an jeder markierten Stelle. Mit <b>Markieren</b> klickst du danach auf der DM-Karte jede Stelle des Raums einmal an (z. B. jede „2“, jedes Grubenfeld).</p>
+<div id="areas"></div>
+</section>
+
+<section>
+<h2>3 · Monster: Bilder und Werte</h2>
+<p class="hint">Übernimm die Monster aus dem Abenteuer oder trage sie von Hand ein. Pro Monster ein Tokenbild und einen Statblock-Screenshot wählen – HP, RK und Größe werden daraus gelesen, bitte prüfen. Zum Schluss alle Bilder in Owlbear hochladen und im Auswahldialog die „Prep …“-Bilder markieren.</p>
+<div class="row"><button id="toRoster">Monster aus dem Abenteuer übernehmen</button></div>
+<div class="row"><input id="newName" placeholder="Weiteres Monster, z. B. Gray Ooze" maxlength="80" style="flex:1;width:auto"><button id="add" class="secondary">Hinzufügen</button></div>
+<div id="roster"></div>
+<div class="row"><button id="uploadAssets" disabled>Bilder in Owlbear hochladen</button><button id="linkAssets" class="secondary" disabled>Bereits hochgeladene zuordnen</button></div>
+</section>
+
+<section>
+<h2>4 · Plan</h2>
+<p class="hint">Der Plan legt fest, was wo aufgebaut wird. Nicht markierte Räume landen in einer Ablage unter der Karte.</p>
+<div class="row"><button id="makePlan">Plan erzeugen</button><button id="savePlan" class="secondary">Als JSON speichern</button></div>
+<pre id="summary"></pre>
+<details><summary>Plan ansehen oder eigenen Plan einfügen</summary>
+<textarea id="plan" aria-label="Szenenplan"></textarea>
+<div class="row"><button id="validate" class="secondary">Plan prüfen</button><button id="fromPlan" class="secondary">Monster aus diesem Plan in Schritt 3 übernehmen</button></div>
+</details>
+</section>
+
+<section>
+<h2>5 · Aufbauen</h2>
+<p class="hint">Alles wird verborgen angelegt. „Plan entfernen“ löscht nur, was dieser Plan angelegt hat.</p>
+<label><input id="confirm" type="checkbox"> Die geöffnete Szene ist die richtige.</label>
+<div class="row"><button id="build" disabled>In dieser Szene aufbauen</button><button id="undo" class="secondary" disabled>Plan entfernen</button></div>
+<div id="reveals"></div>
+</section>
+<script type="module" src="/src/main.ts"></script></html>

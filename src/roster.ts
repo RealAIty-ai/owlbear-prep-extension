@@ -31,20 +31,20 @@ export function choose(m:Monster|string,kind:'token'|'stats',file:File){
 }
 function field(label:string,node:HTMLElement){const l=document.createElement('label');l.append(label,' ',node);return l;}
 function slot(m:Monster,kind:'token'|'stats',label:string){
-  const f=document.createElement('input');f.type='file';f.accept='image/png,image/jpeg,image/webp';
-  const p=pending.get(norm(m.name))?.[kind],s=document.createElement('span');
-  s.className=m[kind]&&!p?'ok':'warn';s.textContent=p?` ${p.name} (noch nicht hochgeladen)`:m[kind]?' in Owlbear ✓':' fehlt';
-  f.onchange=()=>{const file=f.files?.[0];if(file)choose(m,kind,file);};
-  const l=field(label,f);l.append(s);return l;
+  const f=document.createElement('input');f.type='file';f.accept='image/png,image/jpeg,image/webp';f.hidden=true;
+  const p=pending.get(norm(m.name))?.[kind],s=document.createElement('span'),b=document.createElement('span'),l=document.createElement('label');
+  s.className=m[kind]&&!p?'ok':'warn';s.textContent=p?`${p.name} – noch nicht hochgeladen`:m[kind]?'in Owlbear ✓':'fehlt';
+  b.className='btn';b.textContent=m[kind]||p?'ändern …':'wählen …';l.className='file';l.append(f,label,b,s);
+  f.onchange=()=>{const file=f.files?.[0];if(file)choose(m,kind,file);};return l;
 }
 function num(m:Monster,k:'hp'|'ac'|'size',label:string){const i=document.createElement('input');i.type='number';i.min=k==='hp'?'1':k==='size'?'0.5':'0';if(k==='size')i.step='0.5';i.value=m[k]?.toString()??'';
   i.onchange=()=>{const v=Number(i.value);m[k]=i.value&&(k==='size'||Number.isInteger(v))&&v>=Number(i.min)?v:undefined;void save();};return field(label,i);}
 export function render(){
   const box=document.getElementById('roster')!;box.replaceChildren();
   for(const m of roster){const fs=document.createElement('fieldset'),lg=document.createElement('legend'),rm=document.createElement('button'),row=document.createElement('div');
-    lg.textContent=m.name;row.className='row';rm.textContent='Entfernen';rm.onclick=()=>remove(m);
-    row.append(num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),rm);fs.append(lg,slot(m,'token','Token'),slot(m,'stats','Statblock'),row);box.append(fs);}
-  if(!roster.length)box.textContent='Noch keine Monster.';
+    lg.textContent=m.name;row.className='row';rm.textContent='Entfernen';rm.className='secondary';rm.onclick=()=>remove(m);
+    row.append(num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),rm);fs.append(lg,slot(m,'token','Tokenbild'),slot(m,'stats','Statblock'),row);box.append(fs);}
+  if(!roster.length)box.append(Object.assign(document.createElement('p'),{className:'hint',textContent:'Noch keine Monster.'}));
 }
 // Ein Upload-Dialog für alle ausstehenden Bilder, danach Zuordnung über den Asset-Namen „Prep <Monster> Token|Stats“.
 export async function upload(){

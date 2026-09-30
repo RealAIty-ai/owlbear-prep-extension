@@ -28,15 +28,15 @@ export async function mark(i:number){if(!draft)return;draft.dmMap??=$<HTMLSelect
 async function clearPoints(i:number){if(!draft)return;const a=draft.areas[i];a.points=[];await save();
   await OBR.scene.items.deleteItems((await OBR.scene.items.getItems(x=>(x.metadata[MARK_NS] as {area?:string}|undefined)?.area===a.no)).map(x=>x.id));}
 export function render(){
-  const box=$('areas');box.replaceChildren();if(!draft){box.textContent='Noch kein Dungeon übernommen.';return;}
+  const box=$('areas');box.replaceChildren();if(!draft){box.append(h('p',{className:'hint'},'Noch kein Dungeon übernommen.'));return;}
   if(draft.dmMap)$<HTMLSelectElement>('dmSel').value=draft.dmMap;
-  box.append(h('p',{},`Dungeon: ${draft.dungeon}`));
+  box.append(h('p',{},'Dungeon: ',h('b',{},draft.dungeon)));
   draft.areas.forEach((a,i)=>{
-    const rows=a.monsters.map((m,k)=>{const t=h<HTMLInputElement>('input',{value:m.type,maxLength:80}),c=h<HTMLInputElement>('input',{type:'number',min:'1',value:String(m.count)}),e=h<HTMLInputElement>('input',{type:'checkbox',checked:m.each}),x=h('button',{textContent:'×',title:'Monster entfernen'});
+    const rows=a.monsters.map((m,k)=>{const t=h<HTMLInputElement>('input',{value:m.type,maxLength:80}),c=h<HTMLInputElement>('input',{type:'number',min:'1',value:String(m.count)}),e=h<HTMLInputElement>('input',{type:'checkbox',checked:m.each}),x=h('button',{textContent:'×',title:'Monster entfernen',className:'secondary'});
       t.onchange=()=>{m.type=t.value.trim()||m.type;void save();};c.onchange=()=>{m.count=Math.max(1,Math.floor(Number(c.value))||1);void save();};e.onchange=()=>{m.each=e.checked;void save();};x.onclick=()=>{a.monsters.splice(k,1);void save();};
       return h('div',{className:'row'},c,'×',t,h('label',{},e,' je Punkt'),x);});
-    const add=h('button',{textContent:'+ Monster'});add.onclick=()=>{a.monsters.push({type:'Monster',count:1,each:false});void save();};
-    const mk=h('button',{textContent:draft!.current===i?'Markiert gerade …':'Markieren'}),cl=h('button',{textContent:'Punkte löschen'});mk.onclick=()=>void mark(i);cl.onclick=()=>void clearPoints(i);
+    const add=h('button',{textContent:'+ Monster',className:'secondary'});add.onclick=()=>{a.monsters.push({type:'Monster',count:1,each:false});void save();};
+    const mk=h('button',{textContent:'Markieren'}),cl=h('button',{textContent:'Punkte löschen',className:'secondary'});mk.onclick=()=>void mark(i);cl.onclick=()=>void clearPoints(i);
     box.append(h('fieldset',{},h('legend',{},`${a.no}. ${a.name}`),
       ...(a.names.length?[h('p',{className:'warn'},`Namen im Text: ${a.names.join(', ')}`)]:[]),...rows,
       h('div',{className:'row'},add,mk,cl,h('span',{className:a.points.length?'ok':'warn'},` ${a.points.length} Punkt(e)`))));

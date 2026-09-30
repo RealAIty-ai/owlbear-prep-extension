@@ -1,22 +1,22 @@
 import OBR,{buildShape,buildImage,buildText,buildImageUpload,buildSceneUpload} from '@owlbear-rodeo/sdk';
 import type {Item} from '@owlbear-rodeo/sdk';
-import {Plan,demo} from './plan';
+import {Plan} from './plan';
 import {BUBBLES,bubbles,mapOrigin,type MapLike} from './scene';
 import * as roster from './roster';
 import * as draft from './draft';
 const NS='de.soenke.owlbear-prep/item';
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const buttons=['upload','uploadAssets','linkAssets','build','undo'];
-const input=el<HTMLTextAreaElement>('plan');input.value=JSON.stringify(demo,null,2);
+const input=el<HTMLTextAreaElement>('plan');
 let connected=false,busy=false;
 const status=(s:string)=>{el('status').textContent=s;};
-const parse=()=>Plan.parse(JSON.parse(input.value));
+const parse=()=>{if(!input.value.trim())throw Error('Noch kein Plan – in Schritt 4 „Plan erzeugen“ klicken oder einen Plan einfügen.');return Plan.parse(JSON.parse(input.value));};
 const tag=(planId:string,kind:string,sourceId:string)=>({[NS]:{planId,kind,sourceId}});
 const owned=(i:Item,id:string)=>(i.metadata[NS] as {planId?:string}|undefined)?.planId===id;
 function setButtons(){for(const id of buttons)el<HTMLButtonElement>(id).disabled=!connected||busy;}
 async function guard(scene=true){if(!connected)throw Error('Bitte in Owlbear öffnen.');if(await OBR.player.getRole()!=='GM')throw Error('Nur als GM verfügbar.');if(scene&&!await OBR.scene.isReady())throw Error('Zuerst eine Testszene öffnen.');}
 async function run(action:()=>Promise<void>){if(busy)return;busy=true;setButtons();try{await action();}catch(e){status(e instanceof Error?e.message:String(e));}finally{busy=false;setButtons();}}
-function validate(){const p=parse();el('summary').textContent=`${p.name}: ${p.monsters.length} Gegner, ${p.reveals.length} Sichtblöcke. HP/RK aus der Monsterliste (sonst aus dem Plan); Bild-Tokens bekommen Stat Bubbles (für Spieler verborgen), Kreismarker eine verborgene Beschriftung.`;return p;}
+function validate(){const p=parse();el('summary').textContent=`Plan „${p.name}“: ${p.monsters.length} Monster, ${p.reveals.length} Sichtblöcke. Bild-Tokens bekommen Stat Bubbles, Monster ohne Bild einen Kreismarker.`;return p;}
 el('validate').onclick=()=>{try{validate();status('Plan gültig.');}catch(e){status(String(e));}};
 const addName=()=>{const i=el<HTMLInputElement>('newName');if(roster.add(i.value))i.value='';else status('Name leer oder schon vorhanden.');};
 el('add').onclick=addName;el<HTMLInputElement>('newName').onkeydown=e=>{if(e.key==='Enter')addName();};
@@ -49,7 +49,9 @@ async function listMaps(){const maps=(await OBR.scene.items.getItems(i=>i.layer=
   const fill=(id:string,empty:string,guess:RegExp)=>{const sel=el<HTMLSelectElement>(id),keep=sel.value;sel.replaceChildren(new Option(maps.length?empty:'Keine Karte gefunden',''),...maps.map(m=>new Option(m.name,m.id)));sel.value=maps.some(m=>m.id===keep)?keep:(maps.find(m=>guess.test(m.name))??(id==='mapSel'&&maps.length===1?maps[0]:undefined))?.id??'';};
   fill('mapSel','– Spielerkarte wählen –',/player|spieler/i);fill('dmSel','– DM-Karte wählen –',/(^|[^a-z])dm([^a-z]|$)|master|spielleiter/i);}
 async function refresh(){const area=el('reveals');area.replaceChildren();if(!await OBR.scene.isReady())return;await listMaps();let id:string;try{id=parse().id;}catch{return;}for(const item of (await OBR.scene.items.getItems()).filter(i=>owned(i,id)&&(i.metadata[NS] as {kind:string}).kind==='reveal')){const b=document.createElement('button');b.textContent=`${item.visible?'Aufdecken':'Verdecken'}: ${item.name}`;b.onclick=()=>run(async()=>{await guard();await OBR.scene.items.updateItems([item.id],items=>{for(const i of items)i.visible=!i.visible;});await refresh();});area.append(b);}}
-validate();roster.init(status);draft.init(status);
+el('summary').textContent='Noch kein Plan erzeugt.';roster.init(status);draft.init(status);
+// Dateiknöpfe: gewählten Dateinamen neben dem Knopf anzeigen.
+document.querySelectorAll<HTMLInputElement>('label.file input[type=file]').forEach(i=>i.addEventListener('change',()=>{const n=i.parentElement?.querySelector('.fname');if(n)n.textContent=i.files?.[0]?.name??'keine Datei';}));
 // Nur Dev-Server: Browser-Automatisierung kann Dateifelder im fremden iframe nicht bedienen und reicht Testdateien per postMessage herein.
 if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prepTestInput as {id:string;url:string;name:string}|undefined,v=e.data?.prepTestValue as {id:string;value:string}|undefined;
   if(e.data?.prepTestDump&&e.source){const items=await OBR.scene.items.getItems(),own=items.filter(i=>i.metadata[NS]||Object.keys(i.metadata).some(k=>k.startsWith('de.soenke.owlbear-prep/')));
