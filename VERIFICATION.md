@@ -93,3 +93,11 @@ Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestCl
 - Alle Bereiche mit Monstern markiert (2×3, 3, 4×4, 5), Plan mit 12 Monstern erzeugt und aufgebaut (18 Elemente). Alle Monster stehen im richtigen Raum der Spielerkarte.
 - Fehler behoben: Tokens rasteten relativ zur Kartenecke ein; jetzt am Szenenraster (wichtig bei verschobener, kalibrierter Karte).
 - Offen: Statblock-Bild wird über die Karte gelegt; Cube/Pudding noch mit Gray-Ooze-Werten (Monsterliste).
+
+## Markieren auf der Spielerkarte, 30.09.2026
+
+- Markierungen sind jetzt die Positionsquelle: verborgene, ungesperrte Text-Items (verschieben mit Owlbear-Bewegen-Werkzeug, löschen mit Entf oder Klick im Markier-Werkzeug). Popover zählt live je Bereich.
+- „Markieren“ springt zur Spielerkarte; Klicks auf Spieler- oder DM-Karte werden angenommen (DM-Karte über Kartenanteil übertragen).
+- Live: Ansicht springt zur Spielerkarte, Markierungen „2·n“ auf der Spielerkarte gesetzt und gezählt.
+- Fehler gefunden und behoben: Der gerade markierte Bereich lag in den Szenen-Metadaten und wurde von einem parallel arbeitenden GM überschrieben (Markierungen landeten in Bereich 1). Jetzt pro GM in den Werkzeug-Metadaten.
+- NICHT live geprüft: Löschen per Klick auf Markierung, Verschieben und anschließendes „Plan erzeugen“ aus Markierungen der Spielerkarte; ob Werkzeug-Metadaten wirklich pro Client getrennt sind.

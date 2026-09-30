@@ -62,6 +62,7 @@ if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prep
       own:own.map(i=>({name:i.name,layer:i.layer,visible:i.visible,label:(i as {text?:{plainText:string}}).text?.plainText,meta:i.metadata[NS]??i.metadata['de.soenke.owlbear-prep/mark']})),
       roster:(await OBR.room.getMetadata())['de.soenke.owlbear-prep/roster'],plan:input.value,status:el('status').textContent}},'*');}
   if(typeof e.data?.prepTestMark==='number')await draft.mark(e.data.prepTestMark);
+  if(typeof e.data?.prepTestClear==='number')await draft.clearPoints(e.data.prepTestClear);
   if(v){const x=el<HTMLSelectElement>(v.id);x.value=v.value;x.dispatchEvent(new Event('change'));}
   if(d){const b=await (await fetch(d.url)).blob(),dt=new DataTransfer();dt.items.add(new File([b],d.name,{type:b.type}));const x=el<HTMLInputElement>(d.id);x.files=dt.files;x.dispatchEvent(new Event('change'));}});
 if(import.meta.env.DEV)addEventListener('message',e=>{const c=e.data?.prepTestClick;if(typeof c==='string'){if(c==='confirm')el<HTMLInputElement>('confirm').checked=true;else el(c)?.click();}});
