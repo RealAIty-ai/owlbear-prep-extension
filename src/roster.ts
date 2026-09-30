@@ -43,7 +43,9 @@ export function render(){
   const box=document.getElementById('roster')!;box.replaceChildren();
   for(const m of roster){const fs=document.createElement('fieldset'),lg=document.createElement('legend'),rm=document.createElement('button'),row=document.createElement('div');
     lg.textContent=m.name;row.className='row';rm.textContent='Entfernen';rm.className='secondary';rm.onclick=()=>remove(m);
-    row.append(num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),rm);fs.append(lg,slot(m,'token','Tokenbild'),slot(m,'stats','Statblock'),row);box.append(fs);}
+    // Größe zur Kontrolle in Fuß/Metern: 1 Feld = 5 ft ≈ 1,5 m.
+    const sz=document.createElement('span');sz.className='hint';sz.textContent=m.size?`= ${m.size*5} ft ≈ ${(m.size*1.5).toLocaleString('de-DE')} m`:'';
+    row.append(num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),sz,rm);fs.append(lg,slot(m,'token','Tokenbild'),slot(m,'stats','Statblock'),row);box.append(fs);}
   if(!roster.length)box.append(Object.assign(document.createElement('p'),{className:'hint',textContent:'Noch keine Monster.'}));
 }
 // Ein Upload-Dialog für alle ausstehenden Bilder, danach Zuordnung über den Asset-Namen „Prep <Monster> Token|Stats“.
