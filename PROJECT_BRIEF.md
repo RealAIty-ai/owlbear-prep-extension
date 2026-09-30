@@ -29,7 +29,8 @@ Später: Agent/MCP → authentifizierte Befehlswarteschlange → laufende Owlbea
 - Neue Szene aus lokaler Karte über offiziellen Uploaddialog; Nutzer öffnet diese anschließend.
 - JSON-Plan v1: id, name, monsters, reveals; Schema steht in src/plan.ts.
 - Drei Demonstrationsgegner, wahlweise Asset-Bild oder Kreismarker.
-- HP/RK in eigenem Namespace; verborgene Beschriftungen.
+- HP/RK in eigenem Namespace; bei Bild-Tokens zusätzlich Stat Bubbles, sonst verborgene Beschriftungen.
+- Plan-Koordinaten relativ zur gewählten Ursprungskarte.
 - Rechteckiger schwarzer Sichtblock mit Aufdecken/Verdecken.
 - GM-Prüfung, Eingabevalidierung, Doppelklick-Sperre, Duplikatprüfung und gezieltes Entfernen.
 

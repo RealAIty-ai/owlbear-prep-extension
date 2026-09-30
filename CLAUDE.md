@@ -27,7 +27,8 @@ In Owlbear installieren: `http://localhost:5173/manifest.json` (Profil → Exten
 Wichtige Konventionen in `main.ts`:
 - Eigene Metadaten nur unter `de.soenke.owlbear-prep/item` mit `{planId, kind, sourceId, …}`. Löschen/Umschalten filtert immer über `planId` – nie fremde Items oder fremde Namespaces anfassen.
 - Jede Mutation läuft über `run()` (Doppelklick-Sperre) und `guard()` (verbunden, GM-Rolle, Szene bereit) plus Checkbox „Testszene“.
-- Koordinaten im Plan sind Rasterfelder ab Szenenursprung; Umrechnung mit `OBR.scene.grid.getDpi()`.
+- Koordinaten im Plan sind Rasterfelder ab der oberen linken Ecke der gewählten Ursprungskarte (`mapOrigin` in `src/scene.ts`); Umrechnung mit `OBR.scene.grid.getDpi()`.
+- Stat Bubbles: nur über `BUBBLES`/`bubbles()` in `src/scene.ts` schreiben (Schema aus Quellcode verifiziert, live bestätigt). Wirkt nur auf Bild-Items auf CHARACTER/MOUNT.
 - Stat-Labels sind an den Token gehängt, erben aber bewusst **nicht** dessen Sichtbarkeit (`disableAttachmentBehavior(['VISIBLE'])`).
 
 ## Stil
@@ -36,4 +37,4 @@ Sehr kompakter Code (viele Anweisungen pro Zeile, kurze Namen). So beibehalten, 
 
 ## Nicht behaupten
 
-Live-Verhalten in Owlbear, Stat-Bubbles-Anbindung und Agentenverbindung sind nicht verifiziert – implementiert, getestet und geplant getrennt halten. Keine erfundenen D&D-Werte, keine Abenteuerinhalte/fremden Assets im Repo.
+Stand der Live-Verifikation steht in VERIFICATION.md; Spieleransicht und Agentenverbindung sind nicht verifiziert – implementiert, getestet und geplant getrennt halten. Keine erfundenen D&D-Werte, keine Abenteuerinhalte/fremden Assets im Repo.

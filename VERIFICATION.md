@@ -27,3 +27,14 @@ Offen / beobachtet:
 - Labels sind linksbündig ab Tokenmitte, nicht zentriert.
 - Popover ist höher als sichtbar; Statusmeldung oben ist beim Klick auf die unteren Buttons nicht im Blick.
 - Spieleransicht, Reload/Szenenwechsel und Nicht-GM-Rolle weiterhin NICHT geprüft.
+
+## Live-Test Chrome, 30.09.2026 (2): Kartenursprung + Stat Bubbles
+
+Bestanden:
+- Ursprungskarte wird aus dem MAP-Layer gelistet und bei nur einer Karte automatisch gewählt („Oozing Temple Player Version“).
+- Plan `prep-demo-02` landet relativ zur oberen linken Kartenecke (Sichtblock ab Feld 1/1 auf der Karte).
+- Bild-Tokens zeigen Stat Bubbles mit korrekten Werten (20/20 RK 12, 30/30 RK 13, 40/40 RK 14).
+
+Hinweise:
+- Auswahl per Klick auf die Karte funktioniert nicht zuverlässig (Karten sind gesperrt); daher Auswahlliste.
+- Spieleransicht der Stat Bubbles (`hide: true`) weiterhin NICHT geprüft.
