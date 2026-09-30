@@ -49,29 +49,41 @@ export async function pick(m:Monster,kind:'token'|'stats'){
 function slot(m:Monster,kind:'token'|'stats',label:string){
   const f=document.createElement('input');f.type='file';f.accept='image/png,image/jpeg,image/webp';f.hidden=true;
   const p=pending.get(norm(m.name))?.[kind],s=document.createElement('span'),b=document.createElement('span'),l=document.createElement('label');
-  s.className=m[kind]&&!p?'ok':'warn';s.textContent=p?`${p.name} – noch nicht hochgeladen`:m[kind]?'in Owlbear ✓':'fehlt';
-  b.className='btn';b.textContent=m[kind]||p?'ändern …':'wählen …';l.className='file';l.append(f,label,b,s);
+  s.className=`hint ${m[kind]&&!p?'ok':'warn'}`;s.textContent=p?'neu – noch hochladen':m[kind]?'✓ in Owlbear':'fehlt';
+  b.className='btn secondary small';b.textContent='Datei …';l.className='file';l.style.margin='0';l.append(f,b);
   f.onchange=()=>{const file=f.files?.[0];if(file)choose(m,kind,file).catch(e=>say(`Bild konnte nicht verarbeitet werden: ${e instanceof Error?e.message:e}`));};
-  // Vorschau: zugeschnittenes Token (lokal) bzw. das Bild in Owlbear.
-  const src=p?URL.createObjectURL(p):m[kind]?.image.url;if(src&&kind==='token')l.insertBefore(Object.assign(document.createElement('img'),{src,width:40,height:40,alt:'',style:'object-fit:contain;border-radius:4px;background:#0d161c'}),b);
   // Zweiter Weg: Bild aus der Owlbear-Bibliothek (außerhalb des label, damit kein Dateidialog aufgeht).
-  const ob=document.createElement('button');ob.className='secondary';ob.textContent='aus Owlbear …';ob.onclick=()=>pick(m,kind).catch(e=>say(`Auswahl fehlgeschlagen: ${e instanceof Error?e.message:e}`));
-  const row=document.createElement('div');row.className='row';row.append(l,ob);return row;
+  const ob=document.createElement('button');ob.className='secondary small';ob.textContent='aus Owlbear …';ob.onclick=()=>pick(m,kind).catch(e=>say(`Auswahl fehlgeschlagen: ${e instanceof Error?e.message:e}`));
+  const row=document.createElement('div');row.className='row';row.append(Object.assign(document.createElement('span'),{textContent:label,style:'width:72px;font-size:13px'}),l,ob,s);return row;
 }
 function num(m:Monster,k:'hp'|'ac'|'size',label:string){const i=document.createElement('input');i.type='number';i.min=k==='hp'?'1':k==='size'?'0.5':'0';if(k==='size')i.step='0.5';i.value=m[k]?.toString()??'';
   i.onchange=()=>{const v=Number(i.value);m[k]=i.value&&(k==='size'||Number.isInteger(v))&&v>=Number(i.min)?v:undefined;void save();};return field(label,i);}
+// Nach „Hochladen“ wartet die Zuordnung auf den DM (Owlbear-Dialog bestätigen) – der Knopf wird dann hervorgehoben.
+let awaitingLink=false;
 export function render(){
   (window as {prepProgress?:()=>void}).prepProgress?.();
   const box=document.getElementById('roster')!;box.replaceChildren();
-  for(const m of roster){const fs=document.createElement('fieldset'),lg=document.createElement('legend'),rm=document.createElement('button'),row=document.createElement('div');
-    lg.textContent=m.name;row.className='row';rm.textContent='Entfernen';rm.className='secondary';rm.onclick=()=>remove(m);
+  const el=(tag:string,props:Record<string,unknown>={},...kids:(Node|string)[])=>{const e=Object.assign(document.createElement(tag),props);e.append(...kids);return e;};
+  for(const m of roster){
+    const p=pending.get(norm(m.name)),okVal=!!m.hp&&m.ac!==undefined,okTok=!!m.token||!!p?.token,okStat=!!m.stats||!!p?.stats,complete=okVal&&okTok&&okStat&&!p?.token&&!p?.stats;
+    const src=p?.token?URL.createObjectURL(p.token):m.token?.image.url,img=el('img',{alt:'',...(src?{src}:{})});
+    const info=[okVal?`HP ${m.hp} · RK ${m.ac}`:'HP/RK fehlen',m.size?`${m.size*5} ft`:'',okTok?'Token ✓':'kein Token',okStat?'Statblock ✓':'kein Statblock'].filter(Boolean).join(' · ');
+    const rm=el('button',{textContent:'Entfernen',className:'secondary small'}) as unknown as HTMLButtonElement;rm.onclick=()=>remove(m);
     // Größe zur Kontrolle in Fuß/Metern: 1 Feld = 5 ft ≈ 1,5 m.
-    const sz=document.createElement('span');sz.className='hint';sz.textContent=m.size?`= ${m.size*5} ft ≈ ${(m.size*1.5).toLocaleString('de-DE')} m`:'';
-    row.append(num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),sz,rm);// Ein Screenshot mit Statblock und Monsterbild: wird zerlegt und als beides übernommen.
-    const sf=document.createElement('input');sf.type='file';sf.accept='image/png,image/jpeg,image/webp';sf.hidden=true;const sl=document.createElement('label');sl.className='file';const sb=document.createElement('span');sb.className='btn';sb.textContent='Screenshot zerlegen …';sl.append(sf,sb,Object.assign(document.createElement('span'),{className:'hint',textContent:'Statblock + Bild in einem'}));
+    const sz=el('span',{className:'hint',textContent:m.size?`= ${m.size*5} ft ≈ ${(m.size*1.5).toLocaleString('de-DE')} m`:''});
+    // Ein Screenshot mit Statblock und Monsterbild: wird zerlegt und als beides übernommen.
+    const sf=el('input',{type:'file',accept:'image/png,image/jpeg,image/webp',hidden:true}) as unknown as HTMLInputElement,sl=el('label',{className:'file',style:'margin:0'},sf,el('span',{className:'btn secondary small',textContent:'Datei …'}));
     sf.onchange=()=>{const f=sf.files?.[0];if(f)splitShot(m,f).catch(e=>say(`Screenshot konnte nicht zerlegt werden: ${e instanceof Error?e.message:e}`));};
-    fs.append(lg,slot(m,'token','Tokenbild'),slot(m,'stats','Statblock'),sl,row);box.append(fs);}
-  if(!roster.length)box.append(Object.assign(document.createElement('p'),{className:'hint',textContent:'Noch keine Monster.'}));
+    box.append(el('details',{className:'item',open:!complete},
+      el('summary',{},el('span',{className:`dot ${complete?'ok':'warn'}`}),img,el('span',{className:'name'},m.name,el('small',{},info))),
+      el('div',{className:'body'},slot(m,'token','Token'),slot(m,'stats','Statblock'),
+        el('div',{className:'row'},el('span',{textContent:'Beides',style:'width:72px;font-size:13px'}),sl,el('span',{className:'hint',textContent:'Screenshot mit Statblock + Bild'})),
+        el('div',{className:'row'},num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),sz,rm))));
+  }
+  if(!roster.length)box.append(el('p',{className:'hint',textContent:'Noch keine Monster – erst in Schritt 2 einen Dungeon übernehmen oder unter „Weitere Optionen“ hinzufügen.'}));
+  const n=[...pending.values()].reduce((k,e)=>k+(e.token?1:0)+(e.stats?1:0),0),up=document.getElementById('uploadAssets'),ln=document.getElementById('linkAssets');
+  if(up){up.textContent=n?`${n} neue Bild${n===1?'':'er'} in Owlbear hochladen`:'Keine neuen Bilder';up.className=n?'':'secondary';}
+  if(ln)ln.className=awaitingLink?'':'secondary';
 }
 // Ein Upload-Dialog für alle ausstehenden Bilder, danach Zuordnung über den Asset-Namen „Prep <Monster> Token|Stats“.
 export async function upload(){
@@ -79,13 +91,13 @@ export async function upload(){
   const ups=[];for(const m of roster){const p=pending.get(norm(m.name));if(p?.token)ups.push(buildImageUpload(p.token).dpi(512).name(assetName(m.name,'Token')+tag).build());if(p?.stats)ups.push(buildImageUpload(p.stats).name(assetName(m.name,'Stats')+tag).build());}
   if(!ups.length)throw Error('Keine ausstehenden Bilder. Erst Token/Statblock-Dateien wählen.');
   // uploadImages kehrt zurück, bevor der DM den Owlbear-Dialog bestätigt hat – deshalb Zuordnen als eigener Schritt.
-  await OBR.assets.uploadImages(ups,'CHARACTER');
+  await OBR.assets.uploadImages(ups,'CHARACTER');awaitingLink=true;render();
   say(`Owlbear-Upload geöffnet (${ups.length} Bilder, Kennung #${batch}). Im Owlbear-Dialog „Upload“ bestätigen, danach hier „Hochgeladene zuordnen“ klicken und alle angezeigten Bilder auswählen.`);
 }
 export async function link(){
   const got=await OBR.assets.downloadImages(true,batch?`#${batch}`:PREFIX.trim(),'CHARACTER');let n=0;
   for(const g of got)for(const m of roster)for(const kind of ['token','stats'] as const)if(norm(plain(g.name))===norm(assetName(m.name,kind==='token'?'Token':'Stats'))){m[kind]={image:g.image,grid:g.grid};const p=pending.get(norm(m.name));if(p)delete p[kind];n++;}
-  await save();const miss=roster.filter(m=>!m.token||!m.stats).map(m=>m.name);
+  awaitingLink=false;await save();const miss=roster.filter(m=>!m.token||!m.stats).map(m=>m.name);
   say(`${n} Bilder zugeordnet.${miss.length?` Noch ohne Token/Statblock: ${miss.join(', ')}.`:''}`);
 }
 export async function load(status:(s:string)=>void){say=status;online=true;const v=(await OBR.room.getMetadata())[KEY];if(Array.isArray(v))roster=v as Monster[];render();}

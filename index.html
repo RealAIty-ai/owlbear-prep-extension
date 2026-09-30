@@ -1,74 +1,102 @@
 <!doctype html><html lang="de"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Owlbear Prep</title>
 <style>
-body{font:14px system-ui;background:#172128;color:#edf3ed;margin:0 16px 20px}
-h1{font-size:20px;margin:14px 0 2px}h2{font-size:15px;margin:0 0 6px;color:#b8edb0}
-p{line-height:1.45;color:#bacbc9;margin:4px 0 8px}.hint{font-size:13px}
-section{border-top:1px solid #33474a;padding:14px 0 6px}
-button,.btn{display:inline-block;background:#b8edb0;color:#14201b;border:0;border-radius:7px;padding:8px 11px;margin:3px 4px 3px 0;cursor:pointer;font:inherit}
-button.secondary{background:#2f4447;color:#edf3ed}button:disabled{opacity:.4;cursor:default}
+[hidden]{display:none!important}
+body{font:14px system-ui;background:#172128;color:#edf3ed;margin:0 14px 16px}
+h2{font-size:15px;margin:2px 0 6px;color:#b8edb0}
+p{line-height:1.45;color:#bacbc9;margin:4px 0 8px}.hint{font-size:12.5px;color:#9fb3b0}
+button,.btn{display:inline-block;background:#b8edb0;color:#14201b;border:0;border-radius:7px;padding:7px 11px;margin:3px 4px 3px 0;cursor:pointer;font:inherit}
+button.secondary,.btn.secondary{background:#2f4447;color:#edf3ed}button.small,.btn.small{padding:4px 8px;font-size:12.5px}button:disabled{opacity:.4;cursor:default}
+button.big{width:100%;padding:11px;font-weight:600;font-size:15px}
 select,input[type=text],#newName{box-sizing:border-box;width:100%;padding:7px;border-radius:6px;border:1px solid #50665f;background:#0d161c;color:#edf3ed;font:inherit}
-textarea{box-sizing:border-box;width:100%;height:170px;background:#0d161c;color:#d3e9de;border:1px solid #50665f;border-radius:6px;padding:8px}
+textarea{box-sizing:border-box;width:100%;height:150px;background:#0d161c;color:#d3e9de;border:1px solid #50665f;border-radius:6px;padding:8px}
 pre{white-space:pre-wrap;font:12px system-ui;color:#bacbc9}
-#status{padding:10px 12px;background:#26383a;border-radius:6px;position:sticky;top:0;z-index:1;box-shadow:0 4px 8px #172128;margin-bottom:8px}
 label{display:block;margin:8px 0}.field{font-size:13px;color:#bacbc9}
 label.file{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0}.fname{color:#bacbc9;font-size:13px}
-fieldset{border:1px solid #50665f;border-radius:6px;margin:8px 0;padding:6px 8px}legend{font-weight:600}fieldset label{margin:4px 0}
-details{margin:6px 0}summary{cursor:pointer;color:#bacbc9}
+details{margin:4px 0}summary{cursor:pointer;color:#bacbc9}
 .row{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.row select{flex:1;width:auto}
-input[type=number]{width:56px;padding:5px;border-radius:5px;border:1px solid #50665f;background:#0d161c;color:#edf3ed}
-.next{margin:0 0 6px;padding-left:22px;font-size:13px;color:#bacbc9}.next li{margin:2px 0}.next li.done{color:#6f8784;text-decoration:line-through}.next li.now{color:#edf3ed;font-weight:600}.splitter{position:fixed;inset:0;overflow:auto;background:#172128;z-index:5;padding:14px 16px}.splitter canvas{display:block;max-width:100%;cursor:crosshair;margin:8px 0;border-radius:4px}.ok{color:#b8edb0}.warn{color:#f0c987}
+input[type=number]{width:52px;padding:4px;border-radius:5px;border:1px solid #50665f;background:#0d161c;color:#edf3ed}
+.ok{color:#b8edb0}.warn{color:#f0c987}.bad{color:#ff9a8a}
+/* Kopf: Titel, Schrittleiste, Statuszeile – bleibt oben stehen */
+header{position:sticky;top:0;z-index:2;background:#172128;padding:10px 0 6px;box-shadow:0 6px 8px #172128}
+.title{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.title b{font-size:17px}.title span{font-size:12.5px;color:#9fb3b0;text-align:right}
+.stepper{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:8px 0 6px}
+.stepper button{margin:0;padding:6px 2px;border-radius:6px;background:#22343a;color:#9fb3b0;font-size:11.5px;line-height:1.2}
+.stepper button b{display:block;font-size:13px}.stepper button.done{background:#2c4a3d;color:#b8edb0}.stepper button.now{background:#b8edb0;color:#14201b}
+#status{padding:8px 10px;background:#26383a;border-radius:6px;font-size:13px}
+/* Schritte: immer nur einer sichtbar */
+.step{display:none;padding-top:6px}.step.active{display:block}
+nav.steps{display:flex;justify-content:space-between;margin-top:12px;border-top:1px solid #33474a;padding-top:8px}
+/* kompakte Listen (Räume, Monster) */
+.item{border:1px solid #33474a;border-radius:7px;margin:6px 0;background:#1b2a30}
+.item>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:7px 8px;color:#edf3ed}.item>summary::-webkit-details-marker{display:none}
+.item>summary .name{flex:1;min-width:0}.item>summary .name small{display:block;color:#9fb3b0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item>summary img{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#0d161c;flex:none}
+.item .body{padding:4px 8px 8px;border-top:1px solid #33474a}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;background:#50665f}.dot.ok{background:#b8edb0}.dot.warn{background:#f0c987}.dot.now{background:#4da3ff}
+.review{list-style:none;padding:0;margin:6px 0}.review li{padding:5px 0;border-bottom:1px solid #26383a;font-size:13px}
+.splitter{position:fixed;inset:0;overflow:auto;background:#172128;z-index:5;padding:14px 16px}.splitter canvas{display:block;max-width:100%;cursor:crosshair;margin:8px 0;border-radius:4px}
 </style>
-<h1>Owlbear Prep</h1>
-<p class="hint">Bereitet eine Abenteuer-Szene vor: Karten, Monster mit Werten, Positionen aus dem Abenteuertext.</p>
-<div id="status" role="status">Ohne Owlbear: Planprüfung möglich.</div>
-<ol id="next" class="next"></ol>
 
-<section>
-<h2>1 · Karten</h2>
-<p class="hint">Die Spielerkarte ist die Karte, auf der gespielt wird. Die DM-Karte (mit Raumnummern) legst du in Owlbear als zweites Kartenbild daneben und machst sie unsichtbar.</p>
+<header>
+<div class="title"><b>Owlbear Prep</b><span id="dungeonName">kein Dungeon</span></div>
+<div class="stepper" id="stepper">
+<button data-go="1"><b>1</b>Karten</button><button data-go="2"><b>2</b>Abenteuer</button><button data-go="3"><b>3</b>Räume</button><button data-go="4"><b>4</b>Monster</button><button data-go="5"><b>5</b>Aufbau</button>
+</div>
+<div id="status" role="status">Ohne Owlbear: Planprüfung möglich.</div>
+</header>
+<ol id="next" hidden></ol>
+
+<section class="step" data-step="1">
+<h2>Karten</h2>
+<p class="hint">Spielerkarte = darauf wird gespielt (in Owlbear aufs gedruckte Raster ausrichten). DM-Karte = mit Raumnummern, unsichtbar daneben – nur zum Nachschlagen.</p>
 <label class="field">Spielerkarte<select id="mapSel"><option value="">Keine Karte gefunden</option></select></label>
 <label class="field">DM-Karte mit Raumnummern<select id="dmSel"><option value="">Keine Karte gefunden</option></select></label>
+<p class="hint" id="scaleInfo"></p>
 <details><summary>Noch keine Szene? Spielerkarte als neue Szene anlegen</summary>
-<label class="file"><input id="map" type="file" accept="image/png,image/jpeg,image/webp" hidden><span class="btn">Kartenbild wählen …</span><span class="fname">keine Datei</span></label>
-<button id="upload" disabled>Als neue Szene anlegen</button><p class="hint">Danach die neue Szene in Owlbear öffnen und das Raster auf die gedruckten Kästchen ausrichten.</p>
+<label class="file"><input id="map" type="file" accept="image/png,image/jpeg,image/webp" hidden><span class="btn secondary">Kartenbild wählen …</span><span class="fname">keine Datei</span></label>
+<button id="upload" disabled>Als neue Szene anlegen</button><p class="hint">Danach die neue Szene in Owlbear öffnen.</p>
 </details>
 </section>
 
-<section>
-<h2>2 · Abenteuer</h2>
-<p class="hint">Lade das Abenteuer als Markdown-Datei (D&amp;D-Beyond-Export). Die Extension findet die Dungeons, ihre Räume und die Monster darin.</p>
+<section class="step" data-step="2">
+<h2>Abenteuer</h2>
+<p class="hint">Markdown-Datei des Abenteuers laden (z. B. D&amp;D-Beyond-Export) und den Dungeon wählen.</p>
 <label class="file"><input id="advFile" type="file" accept=".md,.txt,text/markdown,text/plain" hidden><span class="btn">Abenteuerdatei wählen …</span><span class="fname">keine Datei</span></label>
 <div class="row"><select id="dungeon"><option value="">– erst Datei laden –</option></select><button id="takeDungeon">Übernehmen</button></div>
-<p class="hint">Pro Raum: Anzahl und Monster prüfen. „je Punkt“ heißt: ein Monster an jeder markierten Stelle. Mit <b>Markieren</b> klickst du danach auf der DM-Karte jede Stelle des Raums einmal an (z. B. jede „2“, jedes Grubenfeld).</p>
+</section>
+
+<section class="step" data-step="3">
+<h2>Räume markieren</h2>
+<p class="hint">Bei jedem Raum mit Monstern auf <b>Markieren</b>, dann auf der Spielerkarte jede Stelle anklicken (Raumnummern siehst du auf der DM-Karte). <b>Alt+Klick</b> löscht einen Punkt. Aufklappen, um Monster oder Notizen zu ändern.</p>
 <div id="areas"></div>
 </section>
 
-<section>
-<h2>3 · Monster: Bilder und Werte</h2>
-<p class="hint">Übernimm die Monster aus dem Abenteuer oder trage sie von Hand ein. Pro Monster ein Tokenbild und einen Statblock-Screenshot wählen – von deiner Festplatte („wählen …“) oder aus deiner Owlbear-Bibliothek („aus Owlbear …“, ohne erneuten Upload). Das Tokenbild wird automatisch auf das Motiv zugeschnitten (quadratisch, auf Wunsch rund); HP, RK und Größe werden aus dem Statblock gelesen, bitte prüfen. Zum Schluss „Bilder in Owlbear hochladen“, im Owlbear-Dialog bestätigen und dann „Hochgeladene zuordnen“ – die Auswahl zeigt nur die Bilder dieses Uploads, alle markieren.</p>
-<div class="row"><button id="toRoster">Monster aus dem Abenteuer übernehmen</button></div>
-<div class="row"><input id="newName" placeholder="Weiteres Monster, z. B. Gray Ooze" maxlength="80" style="flex:1;width:auto"><button id="add" class="secondary">Hinzufügen</button></div>
-<label class="field">Tokenform beim Zuschneiden<select id="tokenShape"><option value="round">rund mit Rand</option><option value="square">quadratisch</option></select></label>
+<section class="step" data-step="4">
+<h2>Monster</h2>
+<p class="hint">Je Monster Tokenbild und Statblock – aus Datei, Owlbear-Bibliothek oder einem Screenshot mit beidem. HP, RK und Größe werden aus dem Statblock gelesen.</p>
 <div id="roster"></div>
-<div class="row"><button id="uploadAssets" disabled>Bilder in Owlbear hochladen</button><button id="linkAssets" disabled>Hochgeladene zuordnen</button></div>
-</section>
-
-<section>
-<h2>4 · Plan</h2>
-<p class="hint">Der Plan legt fest, was wo aufgebaut wird. Nicht markierte Räume landen in einer Ablage unter der Karte.</p>
-<div class="row"><button id="makePlan">Plan erzeugen</button><button id="savePlan" class="secondary">Als JSON speichern</button></div>
-<pre id="summary"></pre>
-<details><summary>Plan ansehen oder eigenen Plan einfügen</summary>
-<textarea id="plan" aria-label="Szenenplan"></textarea>
-<div class="row"><button id="validate" class="secondary">Plan prüfen</button><button id="fromPlan" class="secondary">Monster aus diesem Plan in Schritt 3 übernehmen</button></div>
+<div class="row" id="uploadRow"><button id="uploadAssets" disabled>Neue Bilder in Owlbear hochladen</button><button id="linkAssets" class="secondary" disabled>Hochgeladene zuordnen</button></div>
+<details><summary>Weitere Optionen</summary>
+<div class="row"><input id="newName" placeholder="Weiteres Monster, z. B. Gray Ooze" maxlength="80" style="flex:1;width:auto"><button id="add" class="secondary">Hinzufügen</button></div>
+<div class="row"><button id="toRoster" class="secondary">Monster aus dem Abenteuer übernehmen</button></div>
+<label class="field">Tokenform beim Zuschneiden<select id="tokenShape"><option value="round">rund mit Rand</option><option value="square">quadratisch</option></select></label>
 </details>
 </section>
 
-<section>
-<h2>5 · Aufbauen</h2>
-<p class="hint">Alles wird verborgen angelegt. „Plan entfernen“ löscht nur, was dieser Plan angelegt hat.</p>
-<label><input id="confirm" type="checkbox"> Die geöffnete Szene ist die richtige.</label>
-<div class="row"><button id="build" disabled>In dieser Szene aufbauen</button><button id="undo" class="secondary" disabled>Plan entfernen</button></div>
+<section class="step" data-step="5">
+<h2>Aufbau</h2>
+<ul class="review" id="review"></ul>
+<button id="build" class="big" disabled>Aufbauen</button>
+<p class="hint">Alles wird verborgen angelegt. Ein bestehender Aufbau dieses Plans wird erst ersetzt, wenn der neue vollständig vorbereitet ist.</p>
 <div id="reveals"></div>
+<details><summary>Weitere Optionen</summary>
+<div class="row"><button id="undo" class="secondary" disabled>Aufbau entfernen</button><button id="makePlan" class="secondary">Nur Plan erzeugen</button><button id="savePlan" class="secondary">Plan als JSON speichern</button></div>
+<pre id="summary"></pre>
+<textarea id="plan" aria-label="Szenenplan"></textarea>
+<div class="row"><button id="validate" class="secondary">Plan prüfen</button><button id="fromPlan" class="secondary">Monster aus diesem Plan übernehmen</button></div>
+<label hidden><input id="confirm" type="checkbox" checked> Szene bestätigt</label>
+</details>
 </section>
+
+<nav class="steps"><button id="prev" class="secondary">‹ Zurück</button><button id="nextBtn">Weiter ›</button></nav>
 <script type="module" src="/src/main.ts"></script></html>

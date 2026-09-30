@@ -4,6 +4,7 @@ import {Plan} from './plan';
 import {BUBBLES,bubbles,mapOrigin,mapRect,type MapLike} from './scene';
 import * as roster from './roster';
 import * as draft from './draft';
+import * as wizard from './wizard';
 const NS='de.soenke.owlbear-prep/item';
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const buttons=['upload','uploadAssets','linkAssets','build','undo'];
@@ -25,8 +26,10 @@ el('uploadAssets').onclick=()=>run(async()=>{await guard(false);await roster.upl
 el('linkAssets').onclick=()=>run(async()=>{await guard(false);await roster.link();});
 el('upload').onclick=()=>run(async()=>{await guard(false);const file=el<HTMLInputElement>('map').files?.[0];if(!file)throw Error('Bitte eine Kartendatei wählen.');const copy=new File([await file.arrayBuffer()],file.name,{type:file.type});await OBR.assets.uploadScenes([buildSceneUpload().name(file.name).baseMap(buildImageUpload(copy).build()).build()]);status('Upload-Dialog beendet. Kartenszene in Owlbear öffnen, Raster kalibrieren, dann Plan aufbauen.');});
 el('build').onclick=()=>run(async()=>{
-  await guard();if(!el<HTMLInputElement>('confirm').checked)throw Error('Bitte Testszene bestätigen.');const p=validate();
-  const scene=await OBR.scene.items.getItems();if(scene.some(i=>owned(i,p.id)))throw Error('Dieser Plan ist bereits vorhanden. Erst gezielt entfernen oder eine neue Plan-ID verwenden.');
+  // Mit Dungeon-Entwurf wird der Plan vor dem Aufbau frisch erzeugt; sonst gilt der eingefügte Plan.
+  await guard();if(draft.has())await draft.makePlan();const p=validate();
+  // Sicheres Neu-Aufbauen: alte Elemente dieses Plans erst löschen, wenn alle neuen fehlerfrei vorbereitet sind.
+  const all=await OBR.scene.items.getItems(),old=all.filter(i=>owned(i,p.id)).map(i=>i.id),scene=all.filter(i=>!owned(i,p.id));
   const mapId=el<HTMLSelectElement>('mapSel').value;if(!mapId)throw Error('Bitte zuerst die Ursprungskarte wählen.');const dpi=await OBR.scene.grid.getDpi();const [map]=await OBR.scene.items.getItems([mapId]);if(!map)throw Error('Ursprungskarte nicht mehr in der Szene. Bitte neu wählen.');const o=mapOrigin(map as unknown as MapLike,dpi);const items:Item[]=[];
   // Statblocks rechts neben der Spielerkarte untereinander (je 6 Felder breit), damit sie keine Räume verdecken.
   const placed=new Set<string>(),count=new Map<string,number>(),mr=mapRect(map as unknown as MapLike,dpi);let sy=mr.y;
@@ -49,9 +52,10 @@ el('build').onclick=()=>run(async()=>{
     const bg=buildShape().shapeType('RECTANGLE').width(w).height(hgt).position(pos).fillColor(n.kind==='Schatz'?'#f4e3a1':'#f2b8b0').fillOpacity(0.95).strokeColor('#5b4a2a').strokeWidth(2).layer('NOTE').visible(false).name(n.name).metadata(tag(p.id,'note',n.id)).build();
     items.push(bg,buildText().textType('PLAIN').plainText(body).width(w-24).fontSize(fs).fillColor('#1d1a14').position({x:pos.x+12,y:pos.y+12}).layer('NOTE').visible(false).locked(true).attachedTo(bg.id).name(n.name).metadata(tag(p.id,'note-text',n.id)).build());}
   for(const r of p.reveals)items.push(buildShape().shapeType('RECTANGLE').width(r.width*dpi).height(r.height*dpi).position({x:o.x+r.x*dpi,y:o.y+r.y*dpi}).layer('FOG').fillColor('#000000').fillOpacity(1).strokeWidth(0).name(r.name).locked(true).metadata(tag(p.id,'reveal',r.id)).build());
-  await OBR.scene.items.addItems(items);status(`${items.length} Elemente angelegt. Gegner verborgen. Positionen und Spielersicht prüfen.`);await refresh();
+  if(old.length)await OBR.scene.items.deleteItems(old);
+  await OBR.scene.items.addItems(items);status(`${old.length?'Neu aufgebaut':'Aufgebaut'}: ${items.length} Elemente, alles verborgen. Positionen prüfen, in der Sitzung Monster sichtbar schalten.`);await refresh();draft.progress();
 });
-el('undo').onclick=()=>run(async()=>{await guard();if(!el<HTMLInputElement>('confirm').checked)throw Error('Bitte Testszene bestätigen.');const p=parse();const ids=(await OBR.scene.items.getItems()).filter(i=>owned(i,p.id)).map(i=>i.id);if(ids.length)await OBR.scene.items.deleteItems(ids);status(`${ids.length} Elemente dieses Plans entfernt. Karte und fremde Elemente bleiben erhalten.`);await refresh();});
+el('undo').onclick=()=>run(async()=>{await guard();const p=parse();const ids=(await OBR.scene.items.getItems()).filter(i=>owned(i,p.id)).map(i=>i.id);if(ids.length)await OBR.scene.items.deleteItems(ids);status(`${ids.length} Elemente dieses Plans entfernt. Karte und fremde Elemente bleiben erhalten.`);await refresh();});
 let listTries=0;
 async function listMaps(){const maps=(await OBR.scene.isReady().catch(()=>false))?(await OBR.scene.items.getItems(i=>i.layer==='MAP'&&i.type==='IMAGE')).sort((a,b)=>a.name.localeCompare(b.name)):[];
   // Vorschlag bei mehreren Karten: Name mit „player/spieler“ = Spielerkarte, mit „dm“ = DM-Karte; bestehende Auswahl bleibt.
@@ -62,7 +66,10 @@ async function listMaps(){const maps=(await OBR.scene.isReady().catch(()=>false)
   const dm=el<HTMLSelectElement>('dmSel'),pl=el<HTMLSelectElement>('mapSel').value;if(!dm.value&&maps.length===2&&pl){dm.value=maps.find(m=>m.id!==pl)!.id;dm.dispatchEvent(new Event('change'));}
   (window as {prepProgress?:()=>void}).prepProgress?.();}
 async function refresh(){const area=el('reveals');area.replaceChildren();if(!await OBR.scene.isReady())return;await listMaps();let id:string;try{id=parse().id;}catch{return;}for(const item of (await OBR.scene.items.getItems()).filter(i=>owned(i,id)&&(i.metadata[NS] as {kind:string}).kind==='reveal')){const b=document.createElement('button');b.textContent=`${item.visible?'Aufdecken':'Verdecken'}: ${item.name}`;b.onclick=()=>run(async()=>{await guard();await OBR.scene.items.updateItems([item.id],items=>{for(const i of items)i.visible=!i.visible;});await refresh();});area.append(b);}}
-el('summary').textContent='Noch kein Plan erzeugt.';roster.init(status);draft.init(status);(window as {prepProgress?:()=>void}).prepProgress=draft.progress;draft.progress();
+el('summary').textContent='Noch kein Plan erzeugt.';// Schritt 4 betreten: Monster aus dem Dungeon automatisch in die Monsterliste; nach „Übernehmen“ weiter zu Schritt 3.
+wizard.init(n=>{if(n===4&&draft.has()){const k=draft.syncRoster();if(k)status(`${k} Monster aus dem Dungeon übernommen – jetzt Bilder wählen.`);}});
+el('takeDungeon').addEventListener('click',()=>setTimeout(()=>{if(draft.has())wizard.go(3);},300));
+roster.init(status);draft.init(status);(window as {prepProgress?:()=>void}).prepProgress=draft.progress;draft.progress();
 el<HTMLSelectElement>('mapSel').addEventListener('change',draft.progress);input.addEventListener('input',draft.progress);
 // Dateiknöpfe: gewählten Dateinamen neben dem Knopf anzeigen.
 document.querySelectorAll<HTMLInputElement>('label.file input[type=file]').forEach(i=>i.addEventListener('change',()=>{const n=i.parentElement?.querySelector('.fname');if(n)n.textContent=i.files?.[0]?.name??'keine Datei';}));
@@ -84,6 +91,6 @@ if(import.meta.env.DEV)addEventListener('message',e=>{const c=e.data?.prepTestCl
 if(import.meta.env.DEV)addEventListener('message',e=>{const t=e.data?.prepTestPlan;if(typeof t==='string'){input.value=t;try{validate();status('Plan gültig (Test).');}catch(x){status(String(x));}void refresh();}});
 if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prepTestFile as {monster:string;kind:'token'|'stats';name:string;dataUrl:string}|undefined;if(!d)return;
   const b=await (await fetch(d.dataUrl)).blob();roster.choose(d.monster,d.kind,new File([b],d.name,{type:b.type})).catch(x=>status(String(x)));});
-if(OBR.isAvailable)OBR.onReady(async()=>{connected=true;setButtons();status('Mit Owlbear verbunden.');void listMaps().catch(()=>{});await run(async()=>{await guard(false);await refresh();await roster.load(status);await draft.load(status);});// Kartenlisten aktuell halten, wenn Karten hinzukommen/entfernt werden (sonst bleibt die Auswahl nach dem Laden leer).
+if(OBR.isAvailable)OBR.onReady(async()=>{connected=true;setButtons();status('Mit Owlbear verbunden.');void listMaps().catch(()=>{});await run(async()=>{await guard(false);await refresh();await roster.load(status);await draft.load(status);setTimeout(wizard.start,2000);});// Kartenlisten aktuell halten, wenn Karten hinzukommen/entfernt werden (sonst bleibt die Auswahl nach dem Laden leer).
   let mapKey='';OBR.scene.items.onChange(items=>{const k=items.filter(i=>i.layer==='MAP'&&i.type==='IMAGE').map(i=>i.id+i.name).join();if(k!==mapKey){mapKey=k;void listMaps();}});
-  OBR.scene.onReadyChange(async ready=>{el<HTMLInputElement>('confirm').checked=false;el('reveals').replaceChildren();if(ready)await refresh();});});
+  OBR.scene.onReadyChange(async ready=>{el('reveals').replaceChildren();if(ready)await refresh();});});

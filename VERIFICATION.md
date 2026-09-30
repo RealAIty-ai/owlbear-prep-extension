@@ -150,3 +150,12 @@ Aufbau live (Szene auf 10 ft umgestellt, Bilder/Statblocks vom DM gesetzt): 4 Sp
 - NICHT geprüft: Upload/Aufbau mit dem zerlegten Gnoll-Token; andere Layouts (Buchseite mit Fließtext ums Bild); Rahmen per Maus neu ziehen.
 - Live (Hook Horror Hunt): zerlegtes Gnoll-Token hochgeladen (Kennung #pjyc) und zugeordnet (512×512), Plan neu aufgebaut: 11 Gnolls (22/22) in 2A/2B/5 mit neuem Token, Pack Lord 49/49, 2 Hook Horrors, Schatz-Notiz 2B. Infant Hook Horror ausgelassen (HP/RK fehlen in der Monsterliste).
 - Beobachtung: Owlbears Suche nach der Upload-Kennung ist unscharf und zeigt weitere Bilder; nur die zwei ersten gehören zum Upload.
+
+## Schritt-für-Schritt-Führung, 30.09.2026 (Branch feature/schritt-fuehrung)
+
+- Popover als Assistent: Schrittleiste (Karten, Abenteuer, Räume, Monster, Aufbau), immer ein Schritt sichtbar, Zurück/Weiter bzw. Überspringen. Start beim ersten offenen Schritt (Merken im Browser-Speicher war im Owlbear-iframe unzuverlässig → entfernt).
+- Räume und Monster als kompakte, aufklappbare Zeilen mit Status-Punkt; Monster ohne vollständige Daten sind offen. Bild-Wege je Monster: Datei, Owlbear-Bibliothek, Screenshot. Upload-Knopf zählt neue Bilder, „Zuordnen“ wird nach dem Upload hervorgehoben.
+- Schritt 4 übernimmt Monster aus dem Dungeon automatisch; nach „Übernehmen“ in Schritt 2 geht es zu Schritt 3.
+- Schritt 5: Zusammenfassung mit Warnungen (Karte, Rasterskala, Monsterzahl, nicht markierte Räume, fehlende HP/RK, Bilder, bestehender Aufbau). „Aufbauen/Neu aufbauen“ erzeugt den Plan frisch und löscht den alten Aufbau erst nach fehlerfreier Vorbereitung.
+- Live (Hook Horror Hunt): alle Schritte angesehen; Start direkt bei Schritt 5; „Neu aufbauen“ per echtem Klick → „Neu aufgebaut: 21 Elemente“.
+- NICHT live geprüft: Fehlerfall beim Neu-Aufbauen (alter Aufbau bleibt erhalten) – nur per Code-Reihenfolge sichergestellt.
