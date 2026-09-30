@@ -1,0 +1,39 @@
+# CLAUDE.md
+
+Owlbear-Rodeo-Extension (Popover) für Sönkes D&D-Szenenvorbereitung. Persönlicher Prototyp v0.1, Dokumentation auf Deutsch.
+
+Zuerst lesen: `PROJECT_BRIEF.md` (Ziel, Reihenfolge der Ausbauschritte), `AGENTS.md` (Arbeitsregeln – gelten auch hier), `README.md` (Live-Testablauf), `VERIFICATION.md` (was bewiesen ist und was nicht).
+
+## Befehle
+
+```sh
+npm ci
+npm run dev     # Vite auf 127.0.0.1:5173 (strictPort)
+npm run build   # tsc --noEmit + vite build
+npm test        # node --experimental-strip-types --test src/plan.test.ts
+```
+
+Einzeltest: `node --experimental-strip-types --test --test-name-pattern "<name>" src/plan.test.ts`. Node 22.12+ nötig (lokal: Node 24).
+
+In Owlbear installieren: `http://localhost:5173/manifest.json` (Profil → Extensions → Add Extension).
+
+## Architektur
+
+- `src/plan.ts` – zod-Schema `Plan` (ScenePlan v1: `id`, `name`, `monsters`, `reveals`) plus `demo`. **Grenze zwischen KI-Planung und deterministischer Ausführung**: alles, was gebaut wird, muss vorher dieses Schema passieren. Schema ist `.strict()`, Item-IDs müssen planweit eindeutig sein.
+- `src/main.ts` – Popover-Logik gegen `@owlbear-rodeo/sdk` 3.1.0 (exakt gepinnt). Karten-Upload über `OBR.assets.uploadScenes`, Aufbau per `OBR.scene.items.addItems`, Sichtblöcke (FOG-Layer-Rechtecke) umschalten, Plan gezielt entfernen.
+- `index.html` – gesamte UI inkl. Inline-CSS; `public/manifest.json` – Owlbear-Manifest (Popover `/`).
+- `vite.config.mjs` – CORS-Freigabe für `https://www.owlbear.rodeo`; ohne sie blockiert der Browser das Manifest (`MissingAllowOriginHeader`).
+
+Wichtige Konventionen in `main.ts`:
+- Eigene Metadaten nur unter `de.soenke.owlbear-prep/item` mit `{planId, kind, sourceId, …}`. Löschen/Umschalten filtert immer über `planId` – nie fremde Items oder fremde Namespaces anfassen.
+- Jede Mutation läuft über `run()` (Doppelklick-Sperre) und `guard()` (verbunden, GM-Rolle, Szene bereit) plus Checkbox „Testszene“.
+- Koordinaten im Plan sind Rasterfelder ab Szenenursprung; Umrechnung mit `OBR.scene.grid.getDpi()`.
+- Stat-Labels sind an den Token gehängt, erben aber bewusst **nicht** dessen Sichtbarkeit (`disableAttachmentBehavior(['VISIBLE'])`).
+
+## Stil
+
+Sehr kompakter Code (viele Anweisungen pro Zeile, kurze Namen). So beibehalten, keine neuen Frameworks/Services ohne konkreten Bedarf.
+
+## Nicht behaupten
+
+Live-Verhalten in Owlbear, Stat-Bubbles-Anbindung und Agentenverbindung sind nicht verifiziert – implementiert, getestet und geplant getrennt halten. Keine erfundenen D&D-Werte, keine Abenteuerinhalte/fremden Assets im Repo.
