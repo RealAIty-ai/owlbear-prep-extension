@@ -25,7 +25,7 @@ el('build').onclick=()=>run(async()=>{
   for(const m of p.monsters){const position={x:m.x*dpi,y:m.y*dpi};
     const token=asset?buildImage(asset.image,{dpi:asset.image.width/m.size,offset:{x:asset.image.width/2,y:asset.image.height/2}}).position(position).layer('CHARACTER').name(m.name).visible(false).metadata(tag(p.id,'monster',m.id)).build():buildShape().shapeType('CIRCLE').width(m.size*dpi).height(m.size*dpi).position(position).layer('CHARACTER').fillColor('#a9c4b3').fillOpacity(1).name(m.name).visible(false).metadata(tag(p.id,'monster',m.id)).build();
     token.metadata[NS]={planId:p.id,kind:'monster',sourceId:m.id,hp:m.hp,maxHp:m.hp,ac:m.ac};items.push(token);
-    items.push(buildText().plainText(`${m.name}\nHP ${m.hp} | RK ${m.ac}`).position({x:position.x,y:position.y+m.size*dpi/2+12}).fontSize(20).layer('TEXT').visible(false).attachedTo(token.id).disableAttachmentBehavior(['VISIBLE']).metadata(tag(p.id,'stats',m.id)).build());
+    items.push(buildText().textType('PLAIN').plainText(`${m.name}\nHP ${m.hp} | RK ${m.ac}`).position({x:position.x,y:position.y+m.size*dpi/2+12}).fontSize(20).layer('TEXT').visible(false).attachedTo(token.id).disableAttachmentBehavior(['VISIBLE']).metadata(tag(p.id,'stats',m.id)).build());
   }
   for(const r of p.reveals)items.push(buildShape().shapeType('RECTANGLE').width(r.width*dpi).height(r.height*dpi).position({x:r.x*dpi,y:r.y*dpi}).layer('FOG').fillColor('#000000').fillOpacity(1).strokeWidth(0).name(r.name).locked(true).metadata(tag(p.id,'reveal',r.id)).build());
   await OBR.scene.items.addItems(items);status(`${items.length} Elemente angelegt. Gegner verborgen. Positionen und Spielersicht prüfen.`);await refresh();
