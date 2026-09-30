@@ -1,6 +1,6 @@
 import OBR,{buildText,isImage,type Image,type Item} from '@owlbear-rodeo/sdk';
 import {labelNumber,mapRect,renumber,type MapLike} from './scene';
-import {DRAFT,MARK_NS,TOOL,type Draft,type Mark} from './draft-keys';
+import {DRAFT,MARK_NS,MARKING,TOOL,type Draft,type Mark} from './draft-keys';
 // Läuft dauerhaft im Raum (auch ohne offenes Popover): Alt+Drag-Kopien eigener Monster bekommen die nächste freie Nummer im Token-Label („Name“ im Kontextmenü).
 const NS='de.soenke.owlbear-prep/item';
 type Meta={kind?:string;type?:string;n?:number};
@@ -20,10 +20,10 @@ async function sync(){
 }
 // Markier-Werkzeug: Klick auf Spieler- oder DM-Karte setzt eine verborgene Markierung für den gewählten Bereich; Klick auf eine Markierung entfernt sie.
 // Die Markierungen selbst sind die Positionsquelle für „Plan erzeugen“ und lassen sich mit Owlbear-Mitteln verschieben/löschen.
-async function markClick(pos:{x:number;y:number},target:Item|undefined,sel:{area?:string}){
+async function markClick(pos:{x:number;y:number},target?:Item){
   if(target?.metadata[MARK_NS]){await OBR.scene.items.deleteItems([target.id]);await OBR.notification.show(`Markierung ${(target.metadata[MARK_NS] as Mark).area} entfernt.`,'INFO');return;}
   const d=(await OBR.scene.getMetadata())[DRAFT] as Draft|undefined;
-  const a=d?.areas.find(x=>x.no===sel.area);if(!d||!a){await OBR.notification.show('Im Prep-Popover zuerst bei einem Bereich auf „Markieren“ klicken.','WARNING');return;}
+  const sel=(await OBR.player.getMetadata())[MARKING] as {area?:string}|undefined,a=d?.areas.find(x=>x.no===sel?.area);if(!d||!a){await OBR.notification.show('Im Prep-Popover zuerst bei einem Bereich auf „Markieren“ klicken.','WARNING');return;}
   const dpi=await OBR.scene.grid.getDpi(),maps=await OBR.scene.items.getItems([d.playerMap,d.dmMap].filter((x):x is string=>!!x));
   if(!maps.some(m=>{const r=mapRect(m as unknown as MapLike,dpi);return pos.x>=r.x&&pos.x<=r.x+r.w&&pos.y>=r.y&&pos.y<=r.y+r.h;})){await OBR.notification.show('Bitte auf die Spielerkarte (oder DM-Karte) klicken.','WARNING');return;}
   const k=(await OBR.scene.items.getItems(i=>(i.metadata[MARK_NS] as Mark|undefined)?.area===a.no)).length+1,dx=dpi*0.4,dy=dpi*0.55;
@@ -33,7 +33,7 @@ async function markClick(pos:{x:number;y:number},target:Item|undefined,sel:{area
 async function tools(){
   const icon=new URL('/icon.svg',location.href).href;
   await OBR.tool.create({id:TOOL,icons:[{icon,label:'Prep: Bereiche markieren',filter:{roles:['GM']}}],defaultMode:`${TOOL}/click`});
-  await OBR.tool.createMode({id:`${TOOL}/click`,icons:[{icon,label:'Bereich markieren',filter:{activeTools:[TOOL]}}],cursors:[{cursor:'crosshair'}],onToolClick:(c,e)=>{void markClick(e.pointerPosition,e.target,c.metadata as {area?:string});return false;}});
+  await OBR.tool.createMode({id:`${TOOL}/click`,icons:[{icon,label:'Bereich markieren',filter:{activeTools:[TOOL]}}],cursors:[{cursor:'crosshair'}],onToolClick:(_c,e)=>{void markClick(e.pointerPosition,e.target);return false;}});
 }
 OBR.onReady(async()=>{void tools();
   gm=await OBR.player.getRole()==='GM';OBR.player.onChange(p=>{gm=p.role==='GM';});

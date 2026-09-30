@@ -100,4 +100,5 @@ Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestCl
 - „Markieren“ springt zur Spielerkarte; Klicks auf Spieler- oder DM-Karte werden angenommen (DM-Karte über Kartenanteil übertragen).
 - Live: Ansicht springt zur Spielerkarte, Markierungen „2·n“ auf der Spielerkarte gesetzt und gezählt.
 - Fehler gefunden und behoben: Der gerade markierte Bereich lag in den Szenen-Metadaten und wurde von einem parallel arbeitenden GM überschrieben (Markierungen landeten in Bereich 1). Jetzt pro GM in den Werkzeug-Metadaten.
-- NICHT live geprüft: Löschen per Klick auf Markierung, Verschieben und anschließendes „Plan erzeugen“ aus Markierungen der Spielerkarte; ob Werkzeug-Metadaten wirklich pro Client getrennt sind.
+- Fehler 2: Werkzeug-Metadaten (OBR.tool.setMetadata aus dem Popover) kamen nicht an (getMetadata = undefined) → Meldung „zuerst Markieren“. Jetzt Spieler-Metadaten `de.soenke.owlbear-prep/marking`; live: Bereich 4 markiert („4·1“), Klick auf die Markierung löscht sie („Markierung 4 entfernt“).
+- NICHT live geprüft: Verschieben einer Markierung und „Plan erzeugen“ aus Markierungen der Spielerkarte.

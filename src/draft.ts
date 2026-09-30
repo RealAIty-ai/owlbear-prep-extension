@@ -4,7 +4,7 @@ import {mapRect,spread,type MapLike} from './scene';
 import * as roster from './roster';
 // Entwurf je Szene: Bereiche aus dem Abenteuertext. Positionen kommen aus den Markierungs-Items auf der Karte
 // (gesetzt mit dem Werkzeug in background.ts, verschieb- und löschbar mit Owlbear-Mitteln).
-import {DRAFT,TOOL,MARK_NS,type Draft,type Mark} from './draft-keys';
+import {DRAFT,TOOL,MARK_NS,MARKING,type Draft,type Mark} from './draft-keys';
 // current: gerade markierter Bereich – nur lokal (pro GM), damit parallel arbeitende GMs sich nicht in die Quere kommen.
 let dungeons:Dungeon[]=[],draft:Draft|undefined,say:(s:string)=>void=()=>{},counts=new Map<string,number>(),current:number|undefined;
 type Marked={area:string;i:number;x:number;y:number};
@@ -31,7 +31,7 @@ export function init(status:(s:string)=>void){say=status;
 // Markieren auf der Spielerkarte (für Spieler unsichtbar); die DM-Karte dient nur zum Nachschlagen der Raumnummern, Klicks dort gehen aber auch.
 export async function mark(i:number){if(!draft)return;draft.playerMap=$<HTMLSelectElement>('mapSel').value||draft.playerMap;draft.dmMap=$<HTMLSelectElement>('dmSel').value||draft.dmMap;
   if(!draft.playerMap)return say('Erst in Schritt 1 die Spielerkarte wählen.');current=i;await save();
-  await OBR.tool.setMetadata(TOOL,{area:draft.areas[i].no,name:draft.areas[i].name});await OBR.tool.activateTool(TOOL);
+  await OBR.player.setMetadata({[MARKING]:{area:draft.areas[i].no}});await OBR.tool.activateTool(TOOL);
   const [pm]=await OBR.scene.items.getItems([draft.playerMap]);if(pm){const b=mapRect(pm as unknown as MapLike,await OBR.scene.grid.getDpi());await OBR.viewport.animateToBounds({min:{x:b.x,y:b.y},max:{x:b.x+b.w,y:b.y+b.h},width:b.w,height:b.h,center:{x:b.x+b.w/2,y:b.y+b.h/2}});}
   say(`Bereich ${draft.areas[i].no} (${draft.areas[i].name}): auf der Spielerkarte jede Stelle einmal anklicken (Raumnummern siehst du auf der DM-Karte). Klick auf eine Markierung entfernt sie; verschieben geht mit dem Bewegen-Werkzeug.`);}
 export async function clearPoints(i:number){if(!draft)return;const a=draft.areas[i];
