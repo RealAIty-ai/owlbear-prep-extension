@@ -15,7 +15,8 @@ npm run dev
 2. Installationslink: `http://localhost:5173/manifest.json`.
 3. Extension in einem Test-Raum aktivieren, als GM öffnen.
 4. Im Prep-Popover lokale Karte wählen → „Kartenszene anlegen“. Owlbear fragt den Zielordner. Danach die neue Szene selbst öffnen und Raster/Skalierung prüfen.
-5. Ursprungskarte wählen (Liste der Kartenbilder im MAP-Layer; bei nur einer Karte automatisch). Testplan prüfen. Optional ein bereits in Owlbear gespeichertes Tokenbild wählen (für alle drei Gegner).
+5. Ursprungskarte wählen (Liste der Kartenbilder im MAP-Layer; bei nur einer Karte automatisch). Testplan prüfen.
+   Monster: Namen hinzufügen oder „Aus Plan übernehmen“. Je Monster Token-Bild und Statblock-Screenshot wählen; HP/RK werden per OCR (tesseract.js, im Browser) gelesen und sind editierbar. „Bilder in Owlbear hochladen“ öffnet einen Upload-Dialog für alle Bilder, danach im Auswahldialog alle „Prep …“-Bilder markieren. Plan-Monster finden ihren Eintrag über `type` (sonst `name`).
 6. „Aktuelle Szene ist meine Testszene“ bestätigen → „In aktueller Szene aufbauen“.
 7. Drei verborgene Gegner, HP/RK (Stat Bubbles bei Bild-Tokens, sonst Beschriftung) und schwarzen Sichtblock prüfen. Über „Aufdecken“ den Block verbergen. Gegner bei Bedarf separat sichtbar machen.
 8. „Diesen Plan entfernen“ entfernt nur Elemente mit der aktuellen Plan-ID, auch nach erneutem Öffnen des Popovers. Die Karte bleibt bestehen.

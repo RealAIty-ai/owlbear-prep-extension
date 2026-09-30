@@ -38,3 +38,10 @@ Bestanden:
 Hinweise:
 - Auswahl per Klick auf die Karte funktioniert nicht zuverlässig (Karten sind gesperrt); daher Auswahlliste.
 - Spieleransicht der Stat Bubbles (`hide: true`) weiterhin NICHT geprüft.
+
+## Monsterliste mit OCR, 30.09.2026
+
+- 6 Parser-Tests (englisch/deutsch, 2014/2024-Layout, OCR-Rauschen) grün; insgesamt 14 Tests.
+- Browser-Test (lokale Seite, ohne Owlbear): Hinzufügen, Statblock-Screenshot mit Platzhalterwerten → OCR erkennt HP 33 / RK 11 und trägt sie ein.
+- Tesseract lädt Worker, Core und `eng`-Sprachdaten beim ersten Lesen vom CDN (jsdelivr); der Screenshot bleibt lokal.
+- NICHT live geprüft: Upload-Dialog mit mehreren Bildern, ob Owlbear die Asset-Namen „Prep <Monster> Token|Stats“ beibehält, Zuordnung per Mehrfachauswahl, Statblock-Platzierung, Monsterliste in Raum-Metadaten.

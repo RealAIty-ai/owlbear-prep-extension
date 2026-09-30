@@ -21,6 +21,7 @@ In Owlbear installieren: `http://localhost:5173/manifest.json` (Profil → Exten
 
 - `src/plan.ts` – zod-Schema `Plan` (ScenePlan v1: `id`, `name`, `monsters`, `reveals`) plus `demo`. **Grenze zwischen KI-Planung und deterministischer Ausführung**: alles, was gebaut wird, muss vorher dieses Schema passieren. Schema ist `.strict()`, Item-IDs müssen planweit eindeutig sein.
 - `src/main.ts` – Popover-Logik gegen `@owlbear-rodeo/sdk` 3.1.0 (exakt gepinnt). Karten-Upload über `OBR.assets.uploadScenes`, Aufbau per `OBR.scene.items.addItems`, Sichtblöcke (FOG-Layer-Rechtecke) umschalten, Plan gezielt entfernen.
+- `src/roster.ts` – Monsterliste (Raum-Metadaten `de.soenke.owlbear-prep/roster`), Bild-Upload/Zuordnung über Asset-Namen `Prep <Monster> Token|Stats`, OCR per lazy geladenem tesseract.js; `src/stats.ts` – reiner HP/RK-Parser.
 - `index.html` – gesamte UI inkl. Inline-CSS; `public/manifest.json` – Owlbear-Manifest (Popover `/`).
 - `vite.config.mjs` – CORS-Freigabe für `https://www.owlbear.rodeo`; ohne sie blockiert der Browser das Manifest (`MissingAllowOriginHeader`).
 

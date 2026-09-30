@@ -3,7 +3,8 @@ const coordinate = z.number().finite().min(-1000).max(1000);
 const key = z.string().regex(/^[a-z0-9-]{1,60}$/);
 export const Plan = z.object({
   version:z.literal(1), id:key, name:z.string().min(1).max(100),
-  monsters:z.array(z.object({id:key,name:z.string().min(1).max(80),x:coordinate,y:coordinate,size:z.number().min(0.5).max(20),hp:z.number().int().min(1).max(9999),ac:z.number().int().min(0).max(99)}).strict()).max(100),
+  // type: Monstername aus der Monsterliste (Token, Statblock, HP/RK). Ohne type wird name verwendet; HP/RK im Plan sind Rückfallwerte.
+  monsters:z.array(z.object({id:key,name:z.string().min(1).max(80),type:z.string().min(1).max(80).optional(),x:coordinate,y:coordinate,size:z.number().min(0.5).max(20),hp:z.number().int().min(1).max(9999).optional(),ac:z.number().int().min(0).max(99).optional()}).strict()).max(100),
   reveals:z.array(z.object({id:key,name:z.string().min(1).max(80),x:coordinate,y:coordinate,width:z.number().positive().max(100),height:z.number().positive().max(100)}).strict()).max(100)
 }).strict().superRefine((p,ctx)=>{const ids=[...p.monsters,...p.reveals].map(v=>v.id);if(new Set(ids).size!==ids.length)ctx.addIssue({code:'custom',message:'Item-IDs müssen eindeutig sein.'});});
 export type ScenePlan=z.infer<typeof Plan>;
