@@ -148,3 +148,5 @@ Aufbau live (Szene auf 10 ft umgestellt, Bilder/Statblocks vom DM gesetzt): 4 Sp
 - Token-Zuschnitt: freigestellte Figuren (> 5 % transparent) werden ganz eingepasst statt beschnitten (Kopf blieb sonst weg). 2 Tests.
 - Live mit Gnoll-Screenshot (D&D-Beyond-Layout): Statblock x 4–764 und Bild x 792–1128 erkannt; Statblock ergibt HP 22, RK 15, Größe 1; rundes Token mit ganzer Figur, Hintergrund transparent.
 - NICHT geprüft: Upload/Aufbau mit dem zerlegten Gnoll-Token; andere Layouts (Buchseite mit Fließtext ums Bild); Rahmen per Maus neu ziehen.
+- Live (Hook Horror Hunt): zerlegtes Gnoll-Token hochgeladen (Kennung #pjyc) und zugeordnet (512×512), Plan neu aufgebaut: 11 Gnolls (22/22) in 2A/2B/5 mit neuem Token, Pack Lord 49/49, 2 Hook Horrors, Schatz-Notiz 2B. Infant Hook Horror ausgelassen (HP/RK fehlen in der Monsterliste).
+- Beobachtung: Owlbears Suche nach der Upload-Kennung ist unscharf und zeigt weitere Bilder; nur die zwei ersten gehören zum Upload.
