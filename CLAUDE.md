@@ -10,10 +10,10 @@ Zuerst lesen: `PROJECT_BRIEF.md` (Ziel, Reihenfolge der Ausbauschritte), `AGENTS
 npm ci
 npm run dev     # Vite auf 127.0.0.1:5173 (strictPort)
 npm run build   # tsc --noEmit + vite build
-npm test        # node --experimental-strip-types --test src/plan.test.ts
+npm test        # node --experimental-strip-types --test src/*.test.ts
 ```
 
-Einzeltest: `node --experimental-strip-types --test --test-name-pattern "<name>" src/plan.test.ts`. Node 22.12+ nötig (lokal: Node 24).
+Einzeltest: `node --experimental-strip-types --test --test-name-pattern "<name>" src/*.test.ts`. Node 22.12+ nötig (lokal: Node 24).
 
 In Owlbear installieren: `http://localhost:5173/manifest.json` (Profil → Extensions → Add Extension).
 
