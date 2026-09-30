@@ -33,3 +33,8 @@ export function spread(n:number,size:number):Vec[]{
   for(let r=1;out.length<n;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++)if(Math.max(Math.abs(dx),Math.abs(dy))===r)out.push({x:dx,y:dy});
   return out.slice(0,n).sort((a,b)=>Math.abs(a.x)+Math.abs(a.y)-Math.abs(b.x)-Math.abs(b.y)).map(v=>({x:v.x*size,y:v.y*size}));
 }
+// Tokengröße in Rasterfeldern: size ist in 5-ft-Feldern (Medium 1, Large 2, Huge 3); Karten mit 10 ft oder 3 m je Feld halbieren das.
+export function cells(size:number,scale?:{multiplier:number;unit:string}):number{
+  if(!scale||!(scale.multiplier>0))return size;const u=scale.unit.trim().toLowerCase(),feet=/^(ft|feet|fuß|fuss|')$/.test(u)?scale.multiplier:/^(m|meter|metre)$/.test(u)?scale.multiplier/1.5*5:undefined;
+  return feet?Math.max(0.25,size*5/feet):size;
+}

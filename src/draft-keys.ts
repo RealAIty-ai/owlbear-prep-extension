@@ -8,4 +8,5 @@ export type Point={u:number;v:number};
 export type DArea={no:string;name:string;monsters:Found[];names:string[];points?:Point[]};
 export type Draft={dungeon:string;dmMap?:string;playerMap?:string;areas:DArea[]};
 // Markierung: verborgener Text; der markierte Punkt liegt bei Item-Position + (dx,dy).
-export type Mark={area:string;i:number;dx:number;dy:number};
+export type Mark={area:string;i:number;n?:number;dx:number;dy:number};
+export const MARK_LABEL='de.soenke.owlbear-prep/mark-label';

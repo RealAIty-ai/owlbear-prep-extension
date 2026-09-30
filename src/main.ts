@@ -16,7 +16,7 @@ const owned=(i:Item,id:string)=>(i.metadata[NS] as {planId?:string}|undefined)?.
 function setButtons(){for(const id of buttons)el<HTMLButtonElement>(id).disabled=!connected||busy;}
 async function guard(scene=true){if(!connected)throw Error('Bitte in Owlbear öffnen.');if(await OBR.player.getRole()!=='GM')throw Error('Nur als GM verfügbar.');if(scene&&!await OBR.scene.isReady())throw Error('Zuerst eine Testszene öffnen.');}
 async function run(action:()=>Promise<void>){if(busy)return;busy=true;setButtons();try{await action();}catch(e){status(e instanceof Error?e.message:String(e));}finally{busy=false;setButtons();}}
-function validate(){const p=parse();el('summary').textContent=`Plan „${p.name}“: ${p.monsters.length} Monster, ${p.reveals.length} Sichtblöcke. Bild-Tokens bekommen Stat Bubbles, Monster ohne Bild einen Kreismarker.`;return p;}
+function validate(){const p=parse();draft.progress();el('summary').textContent=`Plan „${p.name}“: ${p.monsters.length} Monster, ${p.reveals.length} Sichtblöcke. Bild-Tokens bekommen Stat Bubbles, Monster ohne Bild einen Kreismarker.`;return p;}
 el('validate').onclick=()=>{try{validate();status('Plan gültig.');}catch(e){status(String(e));}};
 const addName=()=>{const i=el<HTMLInputElement>('newName');if(roster.add(i.value))i.value='';else status('Name leer oder schon vorhanden.');};
 el('add').onclick=addName;el<HTMLInputElement>('newName').onkeydown=e=>{if(e.key==='Enter')addName();};
@@ -47,12 +47,18 @@ el('build').onclick=()=>run(async()=>{
   await OBR.scene.items.addItems(items);status(`${items.length} Elemente angelegt. Gegner verborgen. Positionen und Spielersicht prüfen.`);await refresh();
 });
 el('undo').onclick=()=>run(async()=>{await guard();if(!el<HTMLInputElement>('confirm').checked)throw Error('Bitte Testszene bestätigen.');const p=parse();const ids=(await OBR.scene.items.getItems()).filter(i=>owned(i,p.id)).map(i=>i.id);if(ids.length)await OBR.scene.items.deleteItems(ids);status(`${ids.length} Elemente dieses Plans entfernt. Karte und fremde Elemente bleiben erhalten.`);await refresh();});
-async function listMaps(){const maps=(await OBR.scene.items.getItems(i=>i.layer==='MAP'&&i.type==='IMAGE')).sort((a,b)=>a.name.localeCompare(b.name));
+let listTries=0;
+async function listMaps(){const maps=(await OBR.scene.isReady().catch(()=>false))?(await OBR.scene.items.getItems(i=>i.layer==='MAP'&&i.type==='IMAGE')).sort((a,b)=>a.name.localeCompare(b.name)):[];
   // Vorschlag bei mehreren Karten: Name mit „player/spieler“ = Spielerkarte, mit „dm“ = DM-Karte; bestehende Auswahl bleibt.
   const fill=(id:string,empty:string,guess:RegExp)=>{const sel=el<HTMLSelectElement>(id),keep=sel.value;sel.replaceChildren(new Option(maps.length?empty:'Keine Karte gefunden',''),...maps.map(m=>new Option(m.name,m.id)));sel.value=maps.some(m=>m.id===keep)?keep:(maps.find(m=>guess.test(m.name))??(id==='mapSel'&&maps.length===1?maps[0]:undefined))?.id??'';};
-  fill('mapSel','– Spielerkarte wählen –',/player|spieler/i);fill('dmSel','– DM-Karte wählen –',/(^|[^a-z])dm([^a-z]|$)|master|spielleiter/i);}
+  // Beim Öffnen liefert Owlbear die Items teils erst kurz nach „bereit“ – dann kurz später erneut versuchen.
+  if(!maps.length&&listTries++<15){setTimeout(()=>void listMaps().catch(()=>{}),800);return;}
+  fill('mapSel','– Spielerkarte wählen –',/player|spieler/i);fill('dmSel','– DM-Karte wählen –',/(^|[^a-z])dm([^a-z]|$)|master|spielleiter/i);
+  const dm=el<HTMLSelectElement>('dmSel'),pl=el<HTMLSelectElement>('mapSel').value;if(!dm.value&&maps.length===2&&pl){dm.value=maps.find(m=>m.id!==pl)!.id;dm.dispatchEvent(new Event('change'));}
+  (window as {prepProgress?:()=>void}).prepProgress?.();}
 async function refresh(){const area=el('reveals');area.replaceChildren();if(!await OBR.scene.isReady())return;await listMaps();let id:string;try{id=parse().id;}catch{return;}for(const item of (await OBR.scene.items.getItems()).filter(i=>owned(i,id)&&(i.metadata[NS] as {kind:string}).kind==='reveal')){const b=document.createElement('button');b.textContent=`${item.visible?'Aufdecken':'Verdecken'}: ${item.name}`;b.onclick=()=>run(async()=>{await guard();await OBR.scene.items.updateItems([item.id],items=>{for(const i of items)i.visible=!i.visible;});await refresh();});area.append(b);}}
-el('summary').textContent='Noch kein Plan erzeugt.';roster.init(status);draft.init(status);
+el('summary').textContent='Noch kein Plan erzeugt.';roster.init(status);draft.init(status);(window as {prepProgress?:()=>void}).prepProgress=draft.progress;draft.progress();
+el<HTMLSelectElement>('mapSel').addEventListener('change',draft.progress);input.addEventListener('input',draft.progress);
 // Dateiknöpfe: gewählten Dateinamen neben dem Knopf anzeigen.
 document.querySelectorAll<HTMLInputElement>('label.file input[type=file]').forEach(i=>i.addEventListener('change',()=>{const n=i.parentElement?.querySelector('.fname');if(n)n.textContent=i.files?.[0]?.name??'keine Datei';}));
 // Nur Dev-Server: Browser-Automatisierung kann Dateifelder im fremden iframe nicht bedienen und reicht Testdateien per postMessage herein.
@@ -61,7 +67,7 @@ if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prep
     (e.source as Window).postMessage({prepDump:{draft:(await OBR.scene.getMetadata())['de.soenke.owlbear-prep/draft'],dpi:await OBR.scene.grid.getDpi(),
       maps:items.filter(i=>i.layer==='MAP').map(i=>({id:i.id,name:i.name,visible:i.visible,position:i.position,scale:i.scale,rotation:i.rotation,grid:(i as {grid?:unknown}).grid,image:(i as unknown as {image?:{width:number;height:number}}).image})),
       own:own.map(i=>({name:i.name,layer:i.layer,visible:i.visible,label:(i as {text?:{plainText:string}}).text?.plainText,meta:i.metadata[NS]??i.metadata['de.soenke.owlbear-prep/mark']})),
-      roster:(await OBR.room.getMetadata())['de.soenke.owlbear-prep/roster'],plan:input.value,status:el('status').textContent,marking:(await OBR.player.getMetadata())['de.soenke.owlbear-prep/marking'],activeTool:await OBR.tool.getActiveTool()}},'*');}
+      roster:(await OBR.room.getMetadata())['de.soenke.owlbear-prep/roster'],plan:input.value,status:el('status').textContent,sel:Array.from(el<HTMLSelectElement>('mapSel').options).map(o=>o.text),ready:await OBR.scene.isReady(),mapTypes:items.filter(i=>i.layer==='MAP').map(i=>i.type),lm:await listMaps().then(()=>'ok',x=>String(x)),marking:(await OBR.player.getMetadata())['de.soenke.owlbear-prep/marking'],activeTool:await OBR.tool.getActiveTool()}},'*');}
   if(typeof e.data?.prepTestMark==='number')await draft.mark(e.data.prepTestMark);
   if(typeof e.data?.prepTestClear==='number')await draft.clearPoints(e.data.prepTestClear);
   if(v){const x=el<HTMLSelectElement>(v.id);x.value=v.value;x.dispatchEvent(new Event('change'));}
@@ -70,4 +76,6 @@ if(import.meta.env.DEV)addEventListener('message',e=>{const c=e.data?.prepTestCl
 if(import.meta.env.DEV)addEventListener('message',e=>{const t=e.data?.prepTestPlan;if(typeof t==='string'){input.value=t;try{validate();status('Plan gültig (Test).');}catch(x){status(String(x));}void refresh();}});
 if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prepTestFile as {monster:string;kind:'token'|'stats';name:string;dataUrl:string}|undefined;if(!d)return;
   const b=await (await fetch(d.dataUrl)).blob();roster.choose(d.monster,d.kind,new File([b],d.name,{type:b.type})).catch(x=>status(String(x)));});
-if(OBR.isAvailable)OBR.onReady(async()=>{connected=true;setButtons();status('Mit Owlbear verbunden.');await run(async()=>{await guard(false);await refresh();await roster.load(status);await draft.load(status);});OBR.scene.onReadyChange(async ready=>{el<HTMLInputElement>('confirm').checked=false;el('reveals').replaceChildren();if(ready)await refresh();});});
+if(OBR.isAvailable)OBR.onReady(async()=>{connected=true;setButtons();status('Mit Owlbear verbunden.');void listMaps().catch(()=>{});await run(async()=>{await guard(false);await refresh();await roster.load(status);await draft.load(status);});// Kartenlisten aktuell halten, wenn Karten hinzukommen/entfernt werden (sonst bleibt die Auswahl nach dem Laden leer).
+  let mapKey='';OBR.scene.items.onChange(items=>{const k=items.filter(i=>i.layer==='MAP'&&i.type==='IMAGE').map(i=>i.id+i.name).join();if(k!==mapKey){mapKey=k;void listMaps();}});
+  OBR.scene.onReadyChange(async ready=>{el<HTMLInputElement>('confirm').checked=false;el('reveals').replaceChildren();if(ready)await refresh();});});

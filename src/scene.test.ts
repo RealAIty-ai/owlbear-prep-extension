@@ -13,3 +13,5 @@ test('label number is read from "<type> <n>" only',()=>{assert.equal(labelNumber
 import {mapRect,spread} from './scene.ts';
 test('map rect scales image size to scene units',()=>assert.deepEqual(mapRect({...map,scale:{x:0.5,y:0.5}},150),{x:500,y:300,w:1500,h:1200}));
 test('spread keeps monsters apart by their size',()=>{const s=spread(4,3);assert.deepEqual(s[0],{x:0,y:0});assert.equal(new Set(s.map(v=>`${v.x},${v.y}`)).size,4);assert.ok(s.every(v=>v.x%3===0&&v.y%3===0));});
+import {cells} from './scene.ts';
+test('token cells follow the grid scale',()=>{assert.equal(cells(1,{multiplier:5,unit:'ft'}),1);assert.equal(cells(2,{multiplier:10,unit:'ft'}),1);assert.equal(cells(1,{multiplier:10,unit:'ft'}),0.5);assert.equal(cells(3,{multiplier:1.5,unit:'m'}),3);assert.equal(cells(2,{multiplier:1,unit:'sq'}),2);assert.equal(cells(2),2);});

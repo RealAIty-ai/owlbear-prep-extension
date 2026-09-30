@@ -48,6 +48,7 @@ function slot(m:Monster,kind:'token'|'stats',label:string){
 function num(m:Monster,k:'hp'|'ac'|'size',label:string){const i=document.createElement('input');i.type='number';i.min=k==='hp'?'1':k==='size'?'0.5':'0';if(k==='size')i.step='0.5';i.value=m[k]?.toString()??'';
   i.onchange=()=>{const v=Number(i.value);m[k]=i.value&&(k==='size'||Number.isInteger(v))&&v>=Number(i.min)?v:undefined;void save();};return field(label,i);}
 export function render(){
+  (window as {prepProgress?:()=>void}).prepProgress?.();
   const box=document.getElementById('roster')!;box.replaceChildren();
   for(const m of roster){const fs=document.createElement('fieldset'),lg=document.createElement('legend'),rm=document.createElement('button'),row=document.createElement('div');
     lg.textContent=m.name;row.className='row';rm.textContent='Entfernen';rm.className='secondary';rm.onclick=()=>remove(m);

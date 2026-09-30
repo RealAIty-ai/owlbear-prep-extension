@@ -1,16 +1,16 @@
 import OBR from '@owlbear-rodeo/sdk';
 import {parseAdventure,type Dungeon,type Found} from './adventure';
-import {mapRect,spread,type MapLike} from './scene';
+import {cells,mapRect,spread,type MapLike} from './scene';
 import * as roster from './roster';
 // Entwurf je Szene: Bereiche aus dem Abenteuertext. Positionen kommen aus den Markierungs-Items auf der Karte
 // (gesetzt mit dem Werkzeug in background.ts, verschieb- und löschbar mit Owlbear-Mitteln).
-import {DRAFT,TOOL,MARK_NS,MARKING,type Draft,type Mark} from './draft-keys';
+import {DRAFT,TOOL,MARK_NS,MARK_LABEL,MARKING,type Draft,type Mark} from './draft-keys';
 // current: gerade markierter Bereich – nur lokal (pro GM), damit parallel arbeitende GMs sich nicht in die Quere kommen.
 let dungeons:Dungeon[]=[],draft:Draft|undefined,say:(s:string)=>void=()=>{},counts=new Map<string,number>(),current:number|undefined;
 type Marked={area:string;i:number;x:number;y:number};
 async function marks():Promise<Marked[]>{return (await OBR.scene.items.getItems(i=>!!i.metadata[MARK_NS])).map(i=>{const m=i.metadata[MARK_NS] as Mark;return {area:m.area,i:m.i,x:i.position.x+(m.dx??0),y:i.position.y+(m.dy??0)};}).sort((a,b)=>a.i-b.i);}
 async function recount(){const before=counts;counts=new Map();for(const m of await marks())counts.set(m.area,(counts.get(m.area)??0)+1);render();
-  const c=current!==undefined?draft?.areas[current]:undefined;if(c&&(counts.get(c.no)??0)>(before.get(c.no)??0))say(`Bereich ${c.no} (${c.name}): ${counts.get(c.no)} Markierung(en). Weiter klicken, Markierung anklicken zum Entfernen, oder nächsten Bereich markieren.`);}
+  const c=current!==undefined?draft?.areas[current]:undefined;if(c&&(counts.get(c.no)??0)>(before.get(c.no)??0))say(`Bereich ${c.no} (${c.name}): ${counts.get(c.no)} Markierung(en). Weiter klicken; Alt+Klick auf eine Markierung löscht sie.`);}
 const $=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 function h<T extends HTMLElement=HTMLElement>(tag:string,props:Record<string,unknown>={},...kids:(Node|string)[]):T{const e=Object.assign(document.createElement(tag),props) as T;e.append(...kids);return e;}
 async function save(){render();await OBR.scene.setMetadata({[DRAFT]:draft});}
@@ -33,10 +33,24 @@ export async function mark(i:number){if(!draft)return;draft.playerMap=$<HTMLSele
   if(!draft.playerMap)return say('Erst in Schritt 1 die Spielerkarte wählen.');current=i;await save();
   await OBR.player.setMetadata({[MARKING]:{area:draft.areas[i].no}});await OBR.tool.activateTool(TOOL);
   const [pm]=await OBR.scene.items.getItems([draft.playerMap]);if(pm){const b=mapRect(pm as unknown as MapLike,await OBR.scene.grid.getDpi());await OBR.viewport.animateToBounds({min:{x:b.x,y:b.y},max:{x:b.x+b.w,y:b.y+b.h},width:b.w,height:b.h,center:{x:b.x+b.w/2,y:b.y+b.h/2}});}
-  say(`Bereich ${draft.areas[i].no} (${draft.areas[i].name}): auf der Spielerkarte jede Stelle einmal anklicken (Raumnummern siehst du auf der DM-Karte). Klick auf eine Markierung entfernt sie; verschieben geht mit dem Bewegen-Werkzeug.`);}
+  say(`Bereich ${draft.areas[i].no} (${draft.areas[i].name}): auf der Spielerkarte jede Stelle einmal anklicken (Raumnummern siehst du auf der DM-Karte). Alt+Klick auf eine Markierung löscht sie; verschieben geht mit dem Bewegen-Werkzeug.`);}
 export async function clearPoints(i:number){if(!draft)return;const a=draft.areas[i];
-  await OBR.scene.items.deleteItems((await OBR.scene.items.getItems(x=>(x.metadata[MARK_NS] as Mark|undefined)?.area===a.no)).map(x=>x.id));}
+  const roots=(await OBR.scene.items.getItems(x=>(x.metadata[MARK_NS] as Mark|undefined)?.area===a.no)).map(x=>x.id);
+  await OBR.scene.items.deleteItems((await OBR.scene.items.getItems(x=>roots.includes(x.id)||(!!x.metadata[MARK_LABEL]&&roots.includes(x.attachedTo??'')))).map(x=>x.id));}
+// Checkliste oben im Popover: zeigt erledigte Schritte und hebt den nächsten hervor.
+export function progress(){
+  const ol=document.getElementById('next');if(!ol)return;const types=[...new Set(draft?.areas.flatMap(a=>a.monsters.map(m=>m.type))??[])];
+  const unmarked=draft?.areas.filter(a=>a.monsters.length&&!counts.get(a.no)).map(a=>a.no)??[],noImg=types.filter(t=>!roster.find(t)?.token||!roster.find(t)?.stats);
+  const steps:[boolean,string][]=[
+    [!!$<HTMLSelectElement>('mapSel').value,'Spielerkarte wählen (Schritt 1)'],
+    [!!draft,'Abenteuerdatei laden und Dungeon übernehmen (Schritt 2)'],
+    [!!draft&&!unmarked.length,unmarked.length?`Räume markieren: noch ${unmarked.join(', ')} (Schritt 2, „Markieren“)`:'Räume markieren (Schritt 2)'],
+    [!!draft&&types.length>0&&!noImg.length,noImg.length?`Bilder wählen für: ${noImg.join(', ')} (Schritt 3)`:'Monster übernehmen, Bilder wählen (Schritt 3)'],
+    [!!$<HTMLTextAreaElement>('plan').value.trim(),'Plan erzeugen (Schritt 4), dann aufbauen (Schritt 5)']];
+  const now=steps.findIndex(s=>!s[0]);ol.replaceChildren(...steps.map(([ok,t],i)=>h('li',{className:ok?'done':i===now?'now':''},t)));
+}
 export function render(){
+  progress();
   const box=$('areas');box.replaceChildren();if(!draft){box.append(h('p',{className:'hint'},'Noch kein Dungeon übernommen.'));return;}
   if(draft.dmMap)$<HTMLSelectElement>('dmSel').value=draft.dmMap;
   box.append(h('p',{},'Dungeon: ',h('b',{},draft.dungeon)));
@@ -56,22 +70,23 @@ export function render(){
 async function makePlan(){
   if(!draft)throw Error('Erst einen Dungeon übernehmen.');
   const player=$<HTMLSelectElement>('mapSel').value;if(!player)throw Error('Erst die Spielerkarte (Ursprungskarte) wählen.');
-  const dpi=await OBR.scene.grid.getDpi(),[pm]=await OBR.scene.items.getItems([player]);if(!pm)throw Error('Spielerkarte nicht gefunden.');
+  const dpi=await OBR.scene.grid.getDpi(),scale=await OBR.scene.grid.getScale(),[pm]=await OBR.scene.items.getItems([player]);if(!pm)throw Error('Spielerkarte nicht gefunden.');
   const r=mapRect(pm as unknown as MapLike,dpi),monsters:{id:string;name:string;type:string;x:number;y:number;size:number}[]=[],missing:string[]=[];
   // Bereiche ohne Punkt landen in einer Ablage unter der Spielerkarte (eine Zeile je Bereich), damit kein Monster aus dem Text fehlt.
   let shelf=r.h/dpi+2,off=0;
-  const [dmItem]=draft.dmMap?await OBR.scene.items.getItems([draft.dmMap]):[],dr=dmItem?mapRect(dmItem as unknown as MapLike,dpi):undefined,inside=(b:{x:number;y:number;w:number;h:number},p:{x:number;y:number})=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h;
+  const others=(await OBR.scene.items.getItems(i=>i.layer==='MAP'&&i.type==='IMAGE'&&i.id!==player)).map(i=>mapRect(i as unknown as MapLike,dpi)),inside=(b:{x:number;y:number;w:number;h:number},p:{x:number;y:number})=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h;
   const pointsOf=new Map<string,{u:number;v:number}[]>();
-  for(const m of await marks()){const p=inside(r,m)?{u:(m.x-r.x)/r.w,v:(m.y-r.y)/r.h}:dr&&inside(dr,m)?{u:(m.x-dr.x)/dr.w,v:(m.y-dr.y)/dr.h}:undefined;if(!p){off++;continue;}pointsOf.set(m.area,[...(pointsOf.get(m.area)??[]),p]);}
+  for(const m of await marks()){const dr=inside(r,m)?r:others.find(b=>inside(b,m)),p=dr?{u:(m.x-dr.x)/dr.w,v:(m.y-dr.y)/dr.h}:undefined;if(!p){off++;continue;}pointsOf.set(m.area,[...(pointsOf.get(m.area)??[]),p]);}
   for(const a of draft.areas){if(!a.monsters.length)continue;
     const named=a.names.length===1&&a.monsters.length===1&&a.monsters[0].count===1?a.names[0]:undefined;
     const got=pointsOf.get(a.no)??[],pts=got.length?got:[undefined];if(!got.length)missing.push(a.no);
     pts.forEach((p,pi)=>{const here=a.monsters.flatMap(m=>m.each||pi===0?Array.from({length:m.count},()=>m.type):[]);if(!here.length)return;
-      const size=Math.max(...here.map(t=>roster.find(t)?.size??1)),off=spread(here.length,size);let sx=1;
-      here.forEach((t,k)=>{const s=roster.find(t)?.size??1,x=p?p.u*r.w/dpi+off[k].x:(sx+=s+1)-s-1+s/2,y=p?p.v*r.h/dpi+off[k].y:shelf+size/2;
+      // Größe aus dem Statblock (5-ft-Felder) in Rasterfelder dieser Szene umrechnen (z. B. 10 ft je Feld).
+      const sz=(t:string)=>cells(roster.find(t)?.size??1,scale.parsed),size=Math.max(...here.map(sz)),off=spread(here.length,size);let sx=1;
+      here.forEach((t,k)=>{const s=sz(t),x=p?p.u*r.w/dpi+off[k].x:(sx+=s+1)-s-1+s/2,y=p?p.v*r.h/dpi+off[k].y:shelf+size/2;
         monsters.push({id:`a${a.no}-${pi+1}-${k+1}`.toLowerCase().replace(/[^a-z0-9-]/g,''),name:named??t,type:t,x:+x.toFixed(2),y:+y.toFixed(2),size:s});});
       if(!p)shelf+=size+1;});}
   const id=draft.dungeon.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50)||'dungeon';
-  $<HTMLTextAreaElement>('plan').value=JSON.stringify({version:1,id,name:draft.dungeon,monsters,reveals:[]},null,2);
+  $<HTMLTextAreaElement>('plan').value=JSON.stringify({version:1,id,name:draft.dungeon,monsters,reveals:[]},null,2);progress();
   say(`Plan mit ${monsters.length} Monstern erzeugt.${missing.length?` Noch nicht markiert (liegen in der Ablage unter der Karte): Bereich ${missing.join(', ')}.`:''}${off?` ${off} Markierung(en) liegen außerhalb beider Karten und wurden ignoriert.`:''} Prüfen, dann aufbauen.`);
 }

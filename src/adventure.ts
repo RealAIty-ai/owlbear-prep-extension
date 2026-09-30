@@ -10,7 +10,9 @@ function scan(text:string,area:Area){
   for(const sentence of text.split(/(?<=[.!?])\s+/))for(const m of sentence.matchAll(/(?:\b([a-z]+|\d+)\s+)?\*\*([^*]+)\*\*/gi)){
     const raw=m[2].trim().replace(/[.,;:]$/,''),word=m[1]?.toLowerCase();
     if(/^[A-Z]/.test(raw)){if(!area.names.includes(raw))area.names.push(raw);continue;}
-    const n=word&&/^\d+$/.test(word)?Number(word):word?WORDS[word]:undefined,type=title(n&&n>1?singular(raw):raw);
+    // Anzahl: Zahlwort direkt davor, sonst bei Plural das letzte Zahlwort im Satz davor („four servants … as **specters**“).
+    const plural=/[^s]s$/i.test(raw)&&!/(ss|us|is)$/i.test(raw),before=sentence.slice(0,m.index).toLowerCase().match(/\b(one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b/g)?.pop();
+    const direct=word&&/^\d+$/.test(word)?Number(word):word?WORDS[word]:undefined,n=direct??(plural&&before?(/^\d+$/.test(before)?Number(before):WORDS[before]):undefined),type=title(plural||(n&&n>1)?singular(raw):raw);
     if(area.monsters.some(f=>f.type===type))continue;
     area.monsters.push({type,count:n??1,each:/\beach\b/i.test(sentence)});
   }

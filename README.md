@@ -17,7 +17,7 @@ npm run dev
 
 1. Owlbear-Profil → Extensions → Add Extension, Installationslink `http://localhost:5173/manifest.json`. Extension im Raum aktivieren und als GM öffnen („Prep“ in der oberen Leiste).
 2. **Karten:** Spielerkarte als Szene (ggf. über „Spielerkarte als neue Szene anlegen“), Raster auf die gedruckten Kästchen ausrichten. DM-Karte mit Raumnummern als zweites Kartenbild daneben legen und unsichtbar machen. Im Popover beide Karten auswählen.
-3. **Abenteuer:** Abenteuerdatei (Markdown, D&D-Beyond-Export) wählen, Dungeon übernehmen. Pro Raum Monster/Anzahl prüfen; mit „Markieren“ jede Stelle des Raums auf der DM-Karte anklicken (Werkzeug „Prep: Bereiche markieren“).
+3. **Abenteuer:** Abenteuerdatei (Markdown, D&D-Beyond-Export) wählen, Dungeon übernehmen. Pro Raum Monster/Anzahl prüfen; mit „Markieren“ jede Stelle des Raums auf der **Spielerkarte** anklicken (roter Punkt, für Spieler verborgen). Alt+Klick auf einen Punkt löscht ihn, verschieben mit dem Bewegen-Werkzeug. Die Checkliste oben im Popover zeigt, was noch fehlt.
 4. **Monster:** „Monster aus dem Abenteuer übernehmen“, je Monster Tokenbild und Statblock-Screenshot wählen (HP/RK/Größe werden gelesen, prüfen), „Bilder in Owlbear hochladen“ und im Auswahldialog die „Prep …“-Bilder markieren.
 5. **Plan:** „Plan erzeugen“ (optional als JSON speichern oder ansehen/einfügen).
 6. **Aufbauen:** Szene bestätigen, „In dieser Szene aufbauen“. Alles ist verborgen; „Plan entfernen“ löscht nur Elemente dieses Plans. Duplikate (Alt+Drag) werden automatisch weiter nummeriert.

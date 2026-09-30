@@ -115,3 +115,15 @@ Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestCl
 - Fehler gefunden: „Bilder hochladen“ rief die Zuordnung sofort auf – `uploadImages` kehrt zurück, bevor der DM den Owlbear-Dialog bestätigt → „0 Bilder zugeordnet“. Jetzt zwei Schritte (Hochladen, dann „Hochgeladene zuordnen“); jeder Upload bekommt eine Kennung (#abcd), die Auswahl zeigt nur diese Bilder.
 - Statblocks liegen jetzt untereinander rechts neben der Spielerkarte statt über den Räumen (live bestätigt).
 - NICHT live geprüft: Upload mit Kennung und gefilterte Zuordnung.
+
+## Live-Test Chrome, 30.09.2026 (8): zweiter Dungeon (Lost Tomb of Khaem)
+
+Gefunden und behoben:
+- Kartenauswahl blieb beim Öffnen leer (Owlbear meldet Szene/Items verzögert) → Markieren scheiterte. Jetzt eigenes Nachladen mit Wiederholung, Aktualisierung bei Kartenänderungen; bei zwei Karten wird die andere als DM-Karte vorgeschlagen.
+- Klick nahe einer Markierung löschte sie (Ursache für „Markierung wieder weg“); verborgene Text-Markierungen schlecht auswählbar. Jetzt roter Punkt auf dem PROP-Layer mit angehängter Nummer; Klick darauf nur Hinweis, Alt+Klick löscht (Treffer per Abstand, da Owlbear verborgene Items nicht als target liefert). Nummern fortlaufend (höchste + 1).
+- Parser: „four servants … as **specters**“ → 4 Specter (Zahlwort im Satz vor dem Plural).
+- Rasterskala: Tokengröße wird mit der Szenenskala umgerechnet (10 ft je Feld → Medium = ½ Feld).
+- Checkliste „nächster Schritt“ oben im Popover.
+
+Live bestätigt: Karten vorbelegt, Dungeon mit 4 Specter/1 Wraith, Markieren auf der Spielerkarte, Hinweis bei Klick auf Punkt, Alt+Klick löscht, Plan mit 5 Monstern in Raum 3 und 5.
+NICHT live geprüft: Aufbau dieses Plans, Skalenumrechnung bei 10-ft-Szene (Szene steht noch auf 5 ft).

@@ -16,11 +16,12 @@ fieldset{border:1px solid #50665f;border-radius:6px;margin:8px 0;padding:6px 8px
 details{margin:6px 0}summary{cursor:pointer;color:#bacbc9}
 .row{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.row select{flex:1;width:auto}
 input[type=number]{width:56px;padding:5px;border-radius:5px;border:1px solid #50665f;background:#0d161c;color:#edf3ed}
-.ok{color:#b8edb0}.warn{color:#f0c987}
+.next{margin:0 0 6px;padding-left:22px;font-size:13px;color:#bacbc9}.next li{margin:2px 0}.next li.done{color:#6f8784;text-decoration:line-through}.next li.now{color:#edf3ed;font-weight:600}.ok{color:#b8edb0}.warn{color:#f0c987}
 </style>
 <h1>Owlbear Prep</h1>
 <p class="hint">Bereitet eine Abenteuer-Szene vor: Karten, Monster mit Werten, Positionen aus dem Abenteuertext.</p>
 <div id="status" role="status">Ohne Owlbear: Planprüfung möglich.</div>
+<ol id="next" class="next"></ol>
 
 <section>
 <h2>1 · Karten</h2>
