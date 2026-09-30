@@ -85,3 +85,11 @@ Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestCl
 - Beobachtung: Spielerkarte hat Raster-DPI 150 = Szenen-DPI, das gedruckte 5-ft-Raster ist aber ca. 100 px → Tokens erscheinen zu groß. Karte in Owlbear aufs gedruckte Raster kalibrieren.
 - NICHT geprüft: Aufbau dieses Plans in der Szene, JSON-Download.
 - Aufbau des erzeugten Plans „the-oozing-temple“: 18 Elemente (7 Gray Ooze mit Bild/Label 1–7, 1 Statblock, Cube + 4 Puddings als Kreismarker). Monster liegen in den richtigen Bereichen, aber zu groß/überlappend (Größe 3 für alle aus der Monsterliste + Karte nicht aufs gedruckte Raster kalibriert). Label für benannte Kreismarker korrigiert (Glabbagool).
+
+## Live-Test Chrome, 30.09.2026 (6): neue Szene, kalibrierte Karte
+
+- Neue Szene vom DM angelegt; Spielerkarte auf das gedruckte Raster kalibriert (Bild-DPI 107,2, Versatz), DM-Karte unsichtbar daneben.
+- Markieren funktioniert über den echten „Markieren“-Button (Bereich 4: 4 Punkte). Problem war fehlende Rückmeldung → jetzt Owlbear-Meldung je Klick, Statuszeile zählt mit, größere Markierung „Bereich·Nr“.
+- Alle Bereiche mit Monstern markiert (2×3, 3, 4×4, 5), Plan mit 12 Monstern erzeugt und aufgebaut (18 Elemente). Alle Monster stehen im richtigen Raum der Spielerkarte.
+- Fehler behoben: Tokens rasteten relativ zur Kartenecke ein; jetzt am Szenenraster (wichtig bei verschobener, kalibrierter Karte).
+- Offen: Statblock-Bild wird über die Karte gelegt; Cube/Pudding noch mit Gray-Ooze-Werten (Monsterliste).

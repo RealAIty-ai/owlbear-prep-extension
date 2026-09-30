@@ -10,7 +10,8 @@ const $=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 function h<T extends HTMLElement=HTMLElement>(tag:string,props:Record<string,unknown>={},...kids:(Node|string)[]):T{const e=Object.assign(document.createElement(tag),props) as T;e.append(...kids);return e;}
 async function save(){render();await OBR.scene.setMetadata({[DRAFT]:draft});}
 export async function load(status:(s:string)=>void){say=status;const v=(await OBR.scene.getMetadata())[DRAFT] as Draft|undefined;draft=v;render();
-  OBR.scene.onMetadataChange(m=>{draft=m[DRAFT] as Draft|undefined;render();});}
+  OBR.scene.onMetadataChange(m=>{const before=draft?.areas.reduce((n,a)=>n+a.points.length,0)??0;draft=m[DRAFT] as Draft|undefined;render();
+    const c=draft?.current!==undefined?draft.areas[draft.current]:undefined;if(c&&(draft!.areas.reduce((n,a)=>n+a.points.length,0))>before)say(`Bereich ${c.no} (${c.name}): ${c.points.length} Punkt(e) gesetzt. Weiter klicken oder nächsten Bereich markieren.`);});}
 export function init(status:(s:string)=>void){say=status;
   $<HTMLInputElement>('advFile').onchange=async e=>{const f=(e.target as HTMLInputElement).files?.[0];if(!f)return;dungeons=parseAdventure(await f.text());
     const sel=$<HTMLSelectElement>('dungeon');sel.replaceChildren(new Option(`– ${dungeons.length} Dungeons gefunden –`,''),...dungeons.map((d,i)=>new Option(`${d.title} (${d.areas.length} Bereiche)`,String(i))));say(`${dungeons.length} Dungeons mit nummerierten Bereichen gefunden.`);};
@@ -42,8 +43,6 @@ export function render(){
       h('div',{className:'row'},add,mk,cl,h('span',{className:a.points.length?'ok':'warn'},` ${a.points.length} Punkt(e)`))));
   });
 }
-// Tokenmitte: gerade Größen (2, 4) auf Rasterkreuzungen, sonst auf Feldmitten.
-const snap=(v:number,size:number)=>Number.isInteger(size)&&size%2===0?Math.round(v):Math.floor(v)+0.5;
 // Erzeugt einen normalen Plan (v1): Monster je Punkt, umgerechnet von der DM-Karte auf die Spielerkarte (gleiche Geometrie vorausgesetzt).
 async function makePlan(){
   if(!draft)throw Error('Erst einen Dungeon übernehmen.');
@@ -58,7 +57,7 @@ async function makePlan(){
     pts.forEach((p,pi)=>{const here=a.monsters.flatMap(m=>m.each||pi===0?Array.from({length:m.count},()=>m.type):[]);if(!here.length)return;
       const size=Math.max(...here.map(t=>roster.find(t)?.size??1)),off=spread(here.length,size);let sx=1;
       here.forEach((t,k)=>{const s=roster.find(t)?.size??1,x=p?p.u*r.w/dpi+off[k].x:(sx+=s+1)-s-1+s/2,y=p?p.v*r.h/dpi+off[k].y:shelf+size/2;
-        monsters.push({id:`a${a.no}-${pi+1}-${k+1}`.toLowerCase().replace(/[^a-z0-9-]/g,''),name:named??t,type:t,x:p?snap(x,s):x,y:p?snap(y,s):y,size:s});});
+        monsters.push({id:`a${a.no}-${pi+1}-${k+1}`.toLowerCase().replace(/[^a-z0-9-]/g,''),name:named??t,type:t,x:+x.toFixed(2),y:+y.toFixed(2),size:s});});
       if(!p)shelf+=size+1;});}
   const id=draft.dungeon.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50)||'dungeon';
   $<HTMLTextAreaElement>('plan').value=JSON.stringify({version:1,id,name:draft.dungeon,monsters,reveals:[]},null,2);

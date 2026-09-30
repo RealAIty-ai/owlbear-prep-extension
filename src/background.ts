@@ -24,7 +24,8 @@ async function markClick(pos:{x:number;y:number}){
   const [dm]=await OBR.scene.items.getItems([d.dmMap]);if(!dm)return;const dpi=await OBR.scene.grid.getDpi(),r=mapRect(dm as unknown as MapLike,dpi);
   const u=(pos.x-r.x)/r.w,v=(pos.y-r.y)/r.h;if(u<0||u>1||v<0||v>1){await OBR.notification.show('Außerhalb der DM-Karte geklickt.','WARNING');return;}
   const a=d.areas[d.current];a.points.push({u,v});await OBR.scene.setMetadata({[DRAFT]:d});
-  await OBR.scene.items.addItems([buildText().textType('PLAIN').plainText(a.no).fontSize(Math.round(dpi*0.6)).fontWeight(700).fillColor('#ff3b3b').position({x:pos.x-dpi*0.2,y:pos.y-dpi*0.4}).layer('TEXT').visible(false).locked(true).name(`Bereich ${a.no}`).metadata({[MARK_NS]:{area:a.no,i:a.points.length}}).build()]);
+  await OBR.notification.show(`Bereich ${a.no}: Punkt ${a.points.length} gesetzt. Weiter klicken oder im Popover den nächsten Bereich markieren.`,'SUCCESS');
+  await OBR.scene.items.addItems([buildText().textType('PLAIN').plainText(`${a.no}·${a.points.length}`).fontSize(Math.round(dpi*0.8)).fontWeight(800).fillColor('#ff3b3b').strokeColor('#ffffff').strokeWidth(4).position({x:pos.x-dpi*0.4,y:pos.y-dpi*0.55}).layer('TEXT').visible(false).locked(true).name(`Bereich ${a.no}`).metadata({[MARK_NS]:{area:a.no,i:a.points.length}}).build()]);
 }
 async function tools(){
   const icon=new URL('/icon.svg',location.href).href;
