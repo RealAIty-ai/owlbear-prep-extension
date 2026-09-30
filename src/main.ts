@@ -36,7 +36,7 @@ el('build').onclick=()=>run(async()=>{
     if(e?.stats&&!placed.has(e.name)){placed.add(e.name);const w=e.stats.image.width;items.push(buildImage(e.stats.image,{dpi:w/6,offset:{x:0,y:0}}).position({x:position.x+(m.size/2+0.5)*dpi,y:position.y-m.size*dpi/2}).layer('PROP').name(`${e.name} Statblock`).visible(false).metadata(tag(p.id,'statblock',m.id)).build());}
     // Laufende Nummer steht im Token-Label (Owlbear-Kontextmenü „Name“), der Item-Name bleibt der Monstertyp.
     const n=(count.get(type)??0)+1;count.set(type,n);
-    const token=asset?buildImage(asset.image,{dpi:asset.image.width/m.size,offset:{x:asset.image.width/2,y:asset.image.height/2}}).plainText(`${type} ${n}`).position(position).layer('CHARACTER').name(type).visible(false).metadata(tag(p.id,'monster',m.id)).build():buildShape().shapeType('CIRCLE').width(m.size*dpi).height(m.size*dpi).position(position).layer('CHARACTER').fillColor('#a9c4b3').fillOpacity(1).name(type).visible(false).metadata(tag(p.id,'monster',m.id)).build();
+    const token=asset?buildImage(asset.image,{dpi:asset.image.width/m.size,offset:{x:asset.image.width/2,y:asset.image.height/2}}).plainText(m.name!==type&&m.type?m.name:`${type} ${n}`).position(position).layer('CHARACTER').name(type).visible(false).metadata(tag(p.id,'monster',m.id)).build():buildShape().shapeType('CIRCLE').width(m.size*dpi).height(m.size*dpi).position(position).layer('CHARACTER').fillColor('#a9c4b3').fillOpacity(1).name(type).visible(false).metadata(tag(p.id,'monster',m.id)).build();
     token.metadata[NS]={planId:p.id,kind:'monster',sourceId:m.id,type,n,hp,maxHp:hp,ac};items.push(token);
     if(asset){token.metadata[BUBBLES]=bubbles(hp,ac);}else items.push(buildText().textType('PLAIN').plainText(`${type} ${n}\nHP ${hp} | RK ${ac}`).position({x:position.x,y:position.y+m.size*dpi/2+12}).fontSize(20).layer('TEXT').visible(false).attachedTo(token.id).disableAttachmentBehavior(['VISIBLE']).metadata(tag(p.id,'stats',m.id)).build());
   }
@@ -52,6 +52,12 @@ async function refresh(){const area=el('reveals');area.replaceChildren();if(!awa
 validate();roster.init(status);draft.init(status);
 // Nur Dev-Server: Browser-Automatisierung kann Dateifelder im fremden iframe nicht bedienen und reicht Testdateien per postMessage herein.
 if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prepTestInput as {id:string;url:string;name:string}|undefined,v=e.data?.prepTestValue as {id:string;value:string}|undefined;
+  if(e.data?.prepTestDump&&e.source){const items=await OBR.scene.items.getItems(),own=items.filter(i=>i.metadata[NS]||Object.keys(i.metadata).some(k=>k.startsWith('de.soenke.owlbear-prep/')));
+    (e.source as Window).postMessage({prepDump:{draft:(await OBR.scene.getMetadata())['de.soenke.owlbear-prep/draft'],dpi:await OBR.scene.grid.getDpi(),
+      maps:items.filter(i=>i.layer==='MAP').map(i=>({id:i.id,name:i.name,visible:i.visible,position:i.position,scale:i.scale,rotation:i.rotation,grid:(i as {grid?:unknown}).grid,image:(i as unknown as {image?:{width:number;height:number}}).image})),
+      own:own.map(i=>({name:i.name,layer:i.layer,visible:i.visible,label:(i as {text?:{plainText:string}}).text?.plainText,meta:i.metadata[NS]??i.metadata['de.soenke.owlbear-prep/mark']})),
+      roster:(await OBR.room.getMetadata())['de.soenke.owlbear-prep/roster'],plan:input.value,status:el('status').textContent}},'*');}
+  if(typeof e.data?.prepTestMark==='number')await draft.mark(e.data.prepTestMark);
   if(v){const x=el<HTMLSelectElement>(v.id);x.value=v.value;x.dispatchEvent(new Event('change'));}
   if(d){const b=await (await fetch(d.url)).blob(),dt=new DataTransfer();dt.items.add(new File([b],d.name,{type:b.type}));const x=el<HTMLInputElement>(d.id);x.files=dt.files;x.dispatchEvent(new Event('change'));}});
 if(import.meta.env.DEV)addEventListener('message',e=>{const c=e.data?.prepTestClick;if(typeof c==='string'){if(c==='confirm')el<HTMLInputElement>('confirm').checked=true;else el(c)?.click();}});

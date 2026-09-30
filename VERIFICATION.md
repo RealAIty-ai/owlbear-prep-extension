@@ -76,3 +76,11 @@ Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestCl
 - Live in Owlbear: Datei geladen, Dungeon übernommen, Bereichsliste angezeigt, Monster in die Monsterliste übernommen.
 - Statblock-OCR liest jetzt auch die Größe (Huge → 3 Felder).
 - NICHT live geprüft: Markier-Werkzeug (Klick → Punkt), Plan erzeugen, Umrechnung DM-Karte → Spielerkarte, JSON speichern. Voraussetzung: DM-Karte als zweites Kartenbild in der Szene.
+
+## Live-Test Chrome, 30.09.2026 (5): Markieren und Plan erzeugen
+
+- DM-Karte „DM - Der triefende Tempel“ neben der Spielerkarte; per Name automatisch als DM-Karte vorgeschlagen (Fehler behoben: Vorschlag wurde beim Neuzeichnen geleert).
+- „Markieren“ springt zur DM-Karte und aktiviert das Werkzeug; 9 Klicks (3× Bereich 2, 4 Grubenfelder, 3, 5) als Punkte gespeichert, verborgene rote Nummern gesetzt. Punkte stimmen mit den Nummernpositionen im Kartenbild überein (Abweichung < 0,005 der Kartenbreite).
+- „Plan erzeugen“: 12 Monster (3 Gray Ooze, Glabbagool mit Namen, 4 Black Pudding je Grube, 4 Gray Ooze in 5). Unmarkierte Bereiche landen in einer Ablage unter der Karte statt zu fehlen.
+- Beobachtung: Spielerkarte hat Raster-DPI 150 = Szenen-DPI, das gedruckte 5-ft-Raster ist aber ca. 100 px → Tokens erscheinen zu groß. Karte in Owlbear aufs gedruckte Raster kalibrieren.
+- NICHT geprüft: Aufbau dieses Plans in der Szene, JSON-Download.
