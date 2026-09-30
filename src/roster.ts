@@ -3,7 +3,7 @@ import type {ImageContent,ImageGrid} from '@owlbear-rodeo/sdk';
 import {parseStats} from './stats';
 // Monsterliste pro Raum: Name, HP/RK, zugeordnete Owlbear-Bilder. Lokale Dateien nur bis zum Upload im Speicher.
 export type Asset={image:ImageContent;grid:ImageGrid};
-export type Monster={name:string;hp?:number;ac?:number;token?:Asset;stats?:Asset};
+export type Monster={name:string;hp?:number;ac?:number;size?:number;token?:Asset;stats?:Asset};
 const KEY='de.soenke.owlbear-prep/roster',PREFIX='Prep ';
 let roster:Monster[]=[],online=false;
 const pending=new Map<string,{token?:File;stats?:File}>();
@@ -21,8 +21,8 @@ async function read(m:Monster,file:File){
   say(`Lese HP/RK von ${m.name} … (beim ersten Mal werden die OCR-Daten geladen)`);
   ocr??=import('tesseract.js').then(t=>t.createWorker('eng'));
   const r=parseStats((await (await ocr).recognize(await prep(file))).data.text);
-  if(r.hp)m.hp=r.hp;if(r.ac)m.ac=r.ac;await save();
-  say(r.hp&&r.ac?`${m.name}: HP ${r.hp}, RK ${r.ac} erkannt – bitte prüfen.`:`${m.name}: ${r.hp?'':'HP '}${r.ac?'':'RK '}nicht erkannt – bitte eintragen.`);
+  if(r.hp)m.hp=r.hp;if(r.ac)m.ac=r.ac;if(r.size)m.size=r.size;await save();
+  say(r.hp&&r.ac?`${m.name}: HP ${r.hp}, RK ${r.ac}${r.size?`, Größe ${r.size}`:''} erkannt – bitte prüfen.`:`${m.name}: ${r.hp?'':'HP '}${r.ac?'':'RK '}nicht erkannt – bitte eintragen.`);
 }
 export function choose(m:Monster|string,kind:'token'|'stats',file:File){
   const x=typeof m==='string'?find(m):m;if(!x)throw Error(`Monster „${m}“ nicht in der Liste.`);
@@ -37,13 +37,13 @@ function slot(m:Monster,kind:'token'|'stats',label:string){
   f.onchange=()=>{const file=f.files?.[0];if(file)choose(m,kind,file);};
   const l=field(label,f);l.append(s);return l;
 }
-function num(m:Monster,k:'hp'|'ac',label:string){const i=document.createElement('input');i.type='number';i.min=k==='hp'?'1':'0';i.value=m[k]?.toString()??'';
-  i.onchange=()=>{const v=Number(i.value);m[k]=i.value&&Number.isInteger(v)&&v>=Number(i.min)?v:undefined;void save();};return field(label,i);}
+function num(m:Monster,k:'hp'|'ac'|'size',label:string){const i=document.createElement('input');i.type='number';i.min=k==='hp'?'1':k==='size'?'0.5':'0';if(k==='size')i.step='0.5';i.value=m[k]?.toString()??'';
+  i.onchange=()=>{const v=Number(i.value);m[k]=i.value&&(k==='size'||Number.isInteger(v))&&v>=Number(i.min)?v:undefined;void save();};return field(label,i);}
 export function render(){
   const box=document.getElementById('roster')!;box.replaceChildren();
   for(const m of roster){const fs=document.createElement('fieldset'),lg=document.createElement('legend'),rm=document.createElement('button'),row=document.createElement('div');
     lg.textContent=m.name;row.className='row';rm.textContent='Entfernen';rm.onclick=()=>remove(m);
-    row.append(num(m,'hp','HP'),num(m,'ac','RK'),rm);fs.append(lg,slot(m,'token','Token'),slot(m,'stats','Statblock'),row);box.append(fs);}
+    row.append(num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),rm);fs.append(lg,slot(m,'token','Token'),slot(m,'stats','Statblock'),row);box.append(fs);}
   if(!roster.length)box.textContent='Noch keine Monster.';
 }
 // Ein Upload-Dialog für alle ausstehenden Bilder, danach Zuordnung über den Asset-Namen „Prep <Monster> Token|Stats“.

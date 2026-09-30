@@ -3,6 +3,7 @@ import type {Item} from '@owlbear-rodeo/sdk';
 import {Plan,demo} from './plan';
 import {BUBBLES,bubbles,mapOrigin,type MapLike} from './scene';
 import * as roster from './roster';
+import * as draft from './draft';
 const NS='de.soenke.owlbear-prep/item';
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const buttons=['upload','uploadAssets','linkAssets','build','undo'];
@@ -43,12 +44,18 @@ el('build').onclick=()=>run(async()=>{
   await OBR.scene.items.addItems(items);status(`${items.length} Elemente angelegt. Gegner verborgen. Positionen und Spielersicht prüfen.`);await refresh();
 });
 el('undo').onclick=()=>run(async()=>{await guard();if(!el<HTMLInputElement>('confirm').checked)throw Error('Bitte Testszene bestätigen.');const p=parse();const ids=(await OBR.scene.items.getItems()).filter(i=>owned(i,p.id)).map(i=>i.id);if(ids.length)await OBR.scene.items.deleteItems(ids);status(`${ids.length} Elemente dieses Plans entfernt. Karte und fremde Elemente bleiben erhalten.`);await refresh();});
-async function listMaps(){const sel=el<HTMLSelectElement>('mapSel'),keep=sel.value;const maps=(await OBR.scene.items.getItems(i=>i.layer==='MAP'&&i.type==='IMAGE')).sort((a,b)=>a.name.localeCompare(b.name));sel.replaceChildren(...(maps.length?maps:[{id:'',name:'Keine Karte gefunden'}]).map(m=>new Option(m.name,m.id)));if(maps.some(m=>m.id===keep))sel.value=keep;}
+async function listMaps(){const maps=(await OBR.scene.items.getItems(i=>i.layer==='MAP'&&i.type==='IMAGE')).sort((a,b)=>a.name.localeCompare(b.name));
+  // Vorschlag bei mehreren Karten: Name mit „player/spieler“ = Spielerkarte, mit „dm“ = DM-Karte; bestehende Auswahl bleibt.
+  const fill=(id:string,empty:string,guess:RegExp)=>{const sel=el<HTMLSelectElement>(id),keep=sel.value;sel.replaceChildren(new Option(maps.length?empty:'Keine Karte gefunden',''),...maps.map(m=>new Option(m.name,m.id)));sel.value=maps.some(m=>m.id===keep)?keep:(maps.find(m=>guess.test(m.name))??(id==='mapSel'&&maps.length===1?maps[0]:undefined))?.id??'';};
+  fill('mapSel','– Spielerkarte wählen –',/player|spieler/i);fill('dmSel','– DM-Karte wählen –',/(^|[^a-z])dm([^a-z]|$)|master|spielleiter/i);}
 async function refresh(){const area=el('reveals');area.replaceChildren();if(!await OBR.scene.isReady())return;await listMaps();let id:string;try{id=parse().id;}catch{return;}for(const item of (await OBR.scene.items.getItems()).filter(i=>owned(i,id)&&(i.metadata[NS] as {kind:string}).kind==='reveal')){const b=document.createElement('button');b.textContent=`${item.visible?'Aufdecken':'Verdecken'}: ${item.name}`;b.onclick=()=>run(async()=>{await guard();await OBR.scene.items.updateItems([item.id],items=>{for(const i of items)i.visible=!i.visible;});await refresh();});area.append(b);}}
-validate();roster.init(status);
+validate();roster.init(status);draft.init(status);
 // Nur Dev-Server: Browser-Automatisierung kann Dateifelder im fremden iframe nicht bedienen und reicht Testdateien per postMessage herein.
+if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prepTestInput as {id:string;url:string;name:string}|undefined,v=e.data?.prepTestValue as {id:string;value:string}|undefined;
+  if(v){const x=el<HTMLSelectElement>(v.id);x.value=v.value;x.dispatchEvent(new Event('change'));}
+  if(d){const b=await (await fetch(d.url)).blob(),dt=new DataTransfer();dt.items.add(new File([b],d.name,{type:b.type}));const x=el<HTMLInputElement>(d.id);x.files=dt.files;x.dispatchEvent(new Event('change'));}});
 if(import.meta.env.DEV)addEventListener('message',e=>{const c=e.data?.prepTestClick;if(typeof c==='string'){if(c==='confirm')el<HTMLInputElement>('confirm').checked=true;else el(c)?.click();}});
 if(import.meta.env.DEV)addEventListener('message',e=>{const t=e.data?.prepTestPlan;if(typeof t==='string'){input.value=t;try{validate();status('Plan gültig (Test).');}catch(x){status(String(x));}void refresh();}});
 if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prepTestFile as {monster:string;kind:'token'|'stats';name:string;dataUrl:string}|undefined;if(!d)return;
   const b=await (await fetch(d.dataUrl)).blob();try{roster.choose(d.monster,d.kind,new File([b],d.name,{type:b.type}));}catch(x){status(String(x));}});
-if(OBR.isAvailable)OBR.onReady(async()=>{connected=true;setButtons();status('Mit Owlbear verbunden.');await run(async()=>{await guard(false);await refresh();await roster.load(status);});OBR.scene.onReadyChange(async ready=>{el<HTMLInputElement>('confirm').checked=false;el('reveals').replaceChildren();if(ready)await refresh();});});
+if(OBR.isAvailable)OBR.onReady(async()=>{connected=true;setButtons();status('Mit Owlbear verbunden.');await run(async()=>{await guard(false);await refresh();await roster.load(status);await draft.load(status);});OBR.scene.onReadyChange(async ready=>{el<HTMLInputElement>('confirm').checked=false;el('reveals').replaceChildren();if(ready)await refresh();});});

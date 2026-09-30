@@ -68,3 +68,11 @@ Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestCl
 - Nach Neuladen: drei Gray-Ooze-Tokens (zwei gebaut, eins vom DM kopiert) tragen eindeutige Labels „Gray Ooze 1/2/3“, Stat Bubbles 152/152 RK 8 sichtbar.
 - Frei umbenannte Tokens (Label nicht „<Typ>“/„<Typ> <Nr>“) werden nicht angefasst (Unit-Test).
 - Weiterhin NICHT geprüft: Spieleransicht.
+
+## Abenteuertext → Plan, 30.09.2026
+
+- Parser (Markdown im D&D-Beyond-Exportformat): 15 Dungeons in der lokalen Abenteuerdatei; „The Oozing Temple“: Bereiche 1–6, Monster Gray Ooze (je Punkt), Gelatinous Cube + Name Glabbagool, Black Pudding (je Punkt), 4 Gray Ooze. Tests mit eigenem Beispieltext (kein Buchtext im Repo).
+- OCR der Raumnummern auf der DM-Karte getestet: unbrauchbar (keine der 11 Nummern erkannt) → Bereiche werden per Klick-Werkzeug markiert.
+- Live in Owlbear: Datei geladen, Dungeon übernommen, Bereichsliste angezeigt, Monster in die Monsterliste übernommen.
+- Statblock-OCR liest jetzt auch die Größe (Huge → 3 Felder).
+- NICHT live geprüft: Markier-Werkzeug (Klick → Punkt), Plan erzeugen, Umrechnung DM-Karte → Spielerkarte, JSON speichern. Voraussetzung: DM-Karte als zweites Kartenbild in der Szene.

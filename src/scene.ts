@@ -25,3 +25,11 @@ export function renumber(items:Numbered[],known:Set<string>):{id:string;n:number
   }
   return out;
 }
+// Kartenrechteck in Szenenkoordinaten; Punkte werden als Anteil (0..1) der Karte gespeichert, damit DM- und Spielerkarte austauschbar sind.
+export function mapRect(m:MapLike,sceneDpi:number){const o=mapOrigin(m,sceneDpi),s=sceneDpi/m.grid!.dpi;return {x:o.x,y:o.y,w:m.image!.width*s*m.scale.x,h:m.image!.height*s*m.scale.y};}
+// Versatz in Rasterfeldern für n Monster der Größe size rund um einen Punkt (Spirale: Mitte, Nachbarn, Diagonalen, …).
+export function spread(n:number,size:number):Vec[]{
+  const out:Vec[]=[{x:0,y:0}];
+  for(let r=1;out.length<n;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++)if(Math.max(Math.abs(dx),Math.abs(dy))===r)out.push({x:dx,y:dy});
+  return out.slice(0,n).sort((a,b)=>Math.abs(a.x)+Math.abs(a.y)-Math.abs(b.x)-Math.abs(b.y)).map(v=>({x:v.x*size,y:v.y*size}));
+}

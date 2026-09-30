@@ -10,3 +10,6 @@ test('alt-drag copy of a known token gets the next free number',()=>assert.deepE
 test('numbers are counted per monster type',()=>assert.deepEqual(renumber([{id:'a',base:'Ooze',n:1},{id:'b',base:'Pudding',n:1},{id:'c',base:'Pudding',n:1}],new Set(['a','b'])),[{id:'c',n:2}]));
 test('unique numbers stay untouched and missing ones are filled',()=>assert.deepEqual(renumber([{id:'a',base:'Ooze',n:1},{id:'b',base:'Ooze',n:5},{id:'c',base:'Ooze'}],new Set()),[{id:'c',n:6}]));
 test('label number is read from "<type> <n>" only',()=>{assert.equal(labelNumber('Gray Ooze 3','Gray Ooze'),3);assert.equal(labelNumber(' gray ooze 12 ','Gray Ooze'),12);assert.equal(labelNumber('Gray Ooze','Gray Ooze'),undefined);assert.equal(labelNumber('Boss','Gray Ooze'),undefined);assert.equal(labelNumber('Gray Ooze 2b','Gray Ooze'),undefined);});
+import {mapRect,spread} from './scene.ts';
+test('map rect scales image size to scene units',()=>assert.deepEqual(mapRect({...map,scale:{x:0.5,y:0.5}},150),{x:500,y:300,w:1500,h:1200}));
+test('spread keeps monsters apart by their size',()=>{const s=spread(4,3);assert.deepEqual(s[0],{x:0,y:0});assert.equal(new Set(s.map(v=>`${v.x},${v.y}`)).size,4);assert.ok(s.every(v=>v.x%3===0&&v.y%3===0));});
