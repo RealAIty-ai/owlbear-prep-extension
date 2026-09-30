@@ -6,5 +6,10 @@ export default {
     cors: {
       origin: "https://www.owlbear.rodeo"
     }
+  },
+  build: {
+    rollupOptions: {
+      input: { popover: "index.html", background: "background.html" }
+    }
   }
 };

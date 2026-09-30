@@ -12,3 +12,16 @@ export function mapOrigin(m:MapLike,sceneDpi:number):Vec{
   const s=sceneDpi/m.grid.dpi;
   return {x:m.position.x-m.grid.offset.x*s*m.scale.x,y:m.position.y-m.grid.offset.y*s*m.scale.y};
 }
+// Namensschild von Stat Bubbles (nur sichtbar mit Stat-Bubbles-Einstellung „Name tags“). Nummer steht nur hier, nicht im Item-Namen.
+export const BUBBLES_NAME='com.owlbear-rodeo-bubbles-extension/name';
+export type Numbered={id:string;base:string;n?:number};
+// Vergibt eindeutige Nummern je Monstertyp. Bekannte Items behalten ihre Nummer; neue (z. B. Alt+Drag-Kopien) mit belegter/fehlender Nummer bekommen die nächste freie.
+export function renumber(items:Numbered[],known:Set<string>):{id:string;n:number}[]{
+  const used=new Map<string,Set<number>>(),out:{id:string;n:number}[]=[];
+  for(const i of [...items.filter(i=>known.has(i.id)),...items.filter(i=>!known.has(i.id))]){
+    const u=used.get(i.base)??new Set<number>();used.set(i.base,u);
+    if(i.n&&!u.has(i.n)){u.add(i.n);continue;}
+    const n=Math.max(0,...u)+1;u.add(n);out.push({id:i.id,n});
+  }
+  return out;
+}

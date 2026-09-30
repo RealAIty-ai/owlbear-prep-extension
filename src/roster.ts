@@ -14,21 +14,27 @@ let say:(s:string)=>void=()=>{};
 async function save(){render();if(online)await OBR.room.setMetadata({[KEY]:roster});}
 export function add(name:string){name=name.trim();if(!name||find(name))return false;roster.push({name});void save();return true;}
 function remove(m:Monster){roster=roster.filter(x=>x!==m);pending.delete(norm(m.name));void save();}
-let ocr:Promise<{recognize:(i:File)=>Promise<{data:{text:string}}>}>|undefined;
+// Kleine Statblock-Schrift: 2× hochskaliert in Graustufen liest Tesseract Ziffern deutlich zuverlässiger (z. B. „AC 8“ statt „ACS“).
+async function prep(file:File){const b=await createImageBitmap(file),c=document.createElement('canvas');c.width=b.width*2;c.height=b.height*2;const g=c.getContext('2d')!;g.imageSmoothingQuality='high';g.filter='grayscale(1) contrast(1.4)';g.drawImage(b,0,0,c.width,c.height);return c;}
+let ocr:Promise<{recognize:(i:HTMLCanvasElement)=>Promise<{data:{text:string}}>}>|undefined;
 async function read(m:Monster,file:File){
   say(`Lese HP/RK von ${m.name} … (beim ersten Mal werden die OCR-Daten geladen)`);
   ocr??=import('tesseract.js').then(t=>t.createWorker('eng'));
-  const r=parseStats((await (await ocr).recognize(file)).data.text);
+  const r=parseStats((await (await ocr).recognize(await prep(file))).data.text);
   if(r.hp)m.hp=r.hp;if(r.ac)m.ac=r.ac;await save();
   say(r.hp&&r.ac?`${m.name}: HP ${r.hp}, RK ${r.ac} erkannt – bitte prüfen.`:`${m.name}: ${r.hp?'':'HP '}${r.ac?'':'RK '}nicht erkannt – bitte eintragen.`);
+}
+export function choose(m:Monster|string,kind:'token'|'stats',file:File){
+  const x=typeof m==='string'?find(m):m;if(!x)throw Error(`Monster „${m}“ nicht in der Liste.`);
+  const e=pending.get(norm(x.name))??{};e[kind]=file;pending.set(norm(x.name),e);render();
+  if(kind==='stats')read(x,file).catch(e=>say(`OCR fehlgeschlagen: ${e instanceof Error?e.message:e}. Werte bitte eintragen.`));
 }
 function field(label:string,node:HTMLElement){const l=document.createElement('label');l.append(label,' ',node);return l;}
 function slot(m:Monster,kind:'token'|'stats',label:string){
   const f=document.createElement('input');f.type='file';f.accept='image/png,image/jpeg,image/webp';
   const p=pending.get(norm(m.name))?.[kind],s=document.createElement('span');
   s.className=m[kind]&&!p?'ok':'warn';s.textContent=p?` ${p.name} (noch nicht hochgeladen)`:m[kind]?' in Owlbear ✓':' fehlt';
-  f.onchange=()=>{const file=f.files?.[0];if(!file)return;const e=pending.get(norm(m.name))??{};e[kind]=file;pending.set(norm(m.name),e);render();
-    if(kind==='stats')read(m,file).catch(e=>say(`OCR fehlgeschlagen: ${e instanceof Error?e.message:e}. Werte bitte eintragen.`));};
+  f.onchange=()=>{const file=f.files?.[0];if(file)choose(m,kind,file);};
   const l=field(label,f);l.append(s);return l;
 }
 function num(m:Monster,k:'hp'|'ac',label:string){const i=document.createElement('input');i.type='number';i.min=k==='hp'?'1':'0';i.value=m[k]?.toString()??'';

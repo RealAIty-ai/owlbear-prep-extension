@@ -45,3 +45,19 @@ Hinweise:
 - Browser-Test (lokale Seite, ohne Owlbear): Hinzufügen, Statblock-Screenshot mit Platzhalterwerten → OCR erkennt HP 33 / RK 11 und trägt sie ein.
 - Tesseract lädt Worker, Core und `eng`-Sprachdaten beim ersten Lesen vom CDN (jsdelivr); der Screenshot bleibt lokal.
 - NICHT live geprüft: Upload-Dialog mit mehreren Bildern, ob Owlbear die Asset-Namen „Prep <Monster> Token|Stats“ beibehält, Zuordnung per Mehrfachauswahl, Statblock-Platzierung, Monsterliste in Raum-Metadaten.
+
+## Live-Test Chrome, 30.09.2026 (3): Monsterliste, OCR, Nummerierung
+
+Bestanden:
+- OCR mit echtem Statblock-Screenshot (2024-Layout): zuerst „ACS“ statt „AC 8“; nach 2× Hochskalierung + Graustufen und toleranterem Parser: HP 152, RK 8 erkannt.
+- Monsterliste „Gray Ooze“ mit Token und Statblock aus Owlbear (vom DM hochgeladen und zugeordnet), in Raum-Metadaten gespeichert.
+- Plan mit `type: "Gray Ooze"` baut 2 Bild-Tokens (Stat Bubbles 152/152, RK 8) und 1 verborgenes Statblock-Bild.
+- Background-Script wird von Owlbear geladen (`background_url`).
+
+NICHT geprüft:
+- Alt+Drag/Duplizieren → Umnummerierung im Stat-Bubbles-Namen (Automatisierung kann Alt+Drag nicht; Ansicht sprang während des Tests).
+- Anzeige der Namensschilder (braucht Stat-Bubbles-Einstellung „Name tags“).
+- Spieleransicht.
+- Upload-Dialog selbst (nur Ergebnis des DM-Uploads gesehen).
+
+Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestClick) existieren nur im Dev-Server, nicht im Build.
