@@ -61,3 +61,10 @@ NICHT geprüft:
 - Upload-Dialog selbst (nur Ergebnis des DM-Uploads gesehen).
 
 Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestClick) existieren nur im Dev-Server, nicht im Build.
+
+## Live-Test Chrome, 30.09.2026 (4): Nummer im Token-Label
+
+- Nummer steht jetzt im Token-Label (Owlbear-Kontextmenü „Name“), nicht mehr im Stat-Bubbles-Namen; Item-Name bleibt der Monstertyp.
+- Nach Neuladen: drei Gray-Ooze-Tokens (zwei gebaut, eins vom DM kopiert) tragen eindeutige Labels „Gray Ooze 1/2/3“, Stat Bubbles 152/152 RK 8 sichtbar.
+- Frei umbenannte Tokens (Label nicht „<Typ>“/„<Typ> <Nr>“) werden nicht angefasst (Unit-Test).
+- Weiterhin NICHT geprüft: Spieleransicht.

@@ -12,8 +12,8 @@ export function mapOrigin(m:MapLike,sceneDpi:number):Vec{
   const s=sceneDpi/m.grid.dpi;
   return {x:m.position.x-m.grid.offset.x*s*m.scale.x,y:m.position.y-m.grid.offset.y*s*m.scale.y};
 }
-// Namensschild von Stat Bubbles (nur sichtbar mit Stat-Bubbles-Einstellung „Name tags“). Nummer steht nur hier, nicht im Item-Namen.
-export const BUBBLES_NAME='com.owlbear-rodeo-bubbles-extension/name';
+// Laufende Nummer am Ende des Token-Labels, z. B. „Gray Ooze 3“ → 3.
+export const labelNumber=(label:string,base:string)=>{const l=label.trim(),rest=l.slice(base.length).trim();return l.toLowerCase().startsWith(base.toLowerCase())&&/^\d+$/.test(rest)?Number(rest):undefined;};
 export type Numbered={id:string;base:string;n?:number};
 // Vergibt eindeutige Nummern je Monstertyp. Bekannte Items behalten ihre Nummer; neue (z. B. Alt+Drag-Kopien) mit belegter/fehlender Nummer bekommen die nächste freie.
 export function renumber(items:Numbered[],known:Set<string>):{id:string;n:number}[]{

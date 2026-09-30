@@ -29,6 +29,7 @@ Wichtige Konventionen in `main.ts`:
 - Eigene Metadaten nur unter `de.soenke.owlbear-prep/item` mit `{planId, kind, sourceId, …}`. Löschen/Umschalten filtert immer über `planId` – nie fremde Items oder fremde Namespaces anfassen.
 - Jede Mutation läuft über `run()` (Doppelklick-Sperre) und `guard()` (verbunden, GM-Rolle, Szene bereit) plus Checkbox „Testszene“.
 - Koordinaten im Plan sind Rasterfelder ab der oberen linken Ecke der gewählten Ursprungskarte (`mapOrigin` in `src/scene.ts`); Umrechnung mit `OBR.scene.grid.getDpi()`.
+- Laufende Monsternummer steht im Token-Label (`text.plainText`, „Name“ im Kontextmenü); `src/background.ts` (Manifest `background_url`) nummeriert Kopien nach, nur beim GM und nur Labels im Schema „<Typ> <Nr>“.
 - Stat Bubbles: nur über `BUBBLES`/`bubbles()` in `src/scene.ts` schreiben (Schema aus Quellcode verifiziert, live bestätigt). Wirkt nur auf Bild-Items auf CHARACTER/MOUNT.
 - Stat-Labels sind an den Token gehängt, erben aber bewusst **nicht** dessen Sichtbarkeit (`disableAttachmentBehavior(['VISIBLE'])`).
 
