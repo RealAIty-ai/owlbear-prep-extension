@@ -102,3 +102,9 @@ Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestCl
 - Fehler gefunden und behoben: Der gerade markierte Bereich lag in den Szenen-Metadaten und wurde von einem parallel arbeitenden GM überschrieben (Markierungen landeten in Bereich 1). Jetzt pro GM in den Werkzeug-Metadaten.
 - Fehler 2: Werkzeug-Metadaten (OBR.tool.setMetadata aus dem Popover) kamen nicht an (getMetadata = undefined) → Meldung „zuerst Markieren“. Jetzt Spieler-Metadaten `de.soenke.owlbear-prep/marking`; live: Bereich 4 markiert („4·1“), Klick auf die Markierung löscht sie („Markierung 4 entfernt“).
 - NICHT live geprüft: Verschieben einer Markierung und „Plan erzeugen“ aus Markierungen der Spielerkarte.
+
+## Tokenbilder zuschneiden, 30.09.2026
+
+- Beim Wählen eines Tokenbilds: transparenten Rand abschneiden, mittig quadratisch auf das Motiv zuschneiden, optional rund mit Rand, 512×512-PNG; Upload mit Asset-DPI 512 (= 1 Feld). 4 Unit-Tests (Zuschnitt-Rechnung).
+- Browser-Test (lokale Seite) mit dem Gray-Ooze-Artwork (1000×874): rundes 512er-Token, Motiv füllt die Fläche, Vorschau in der Monsterliste.
+- NICHT live geprüft: Upload des zugeschnittenen Tokens nach Owlbear und Aufbau damit.

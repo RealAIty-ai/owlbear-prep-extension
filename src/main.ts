@@ -68,5 +68,5 @@ if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prep
 if(import.meta.env.DEV)addEventListener('message',e=>{const c=e.data?.prepTestClick;if(typeof c==='string'){if(c==='confirm')el<HTMLInputElement>('confirm').checked=true;else el(c)?.click();}});
 if(import.meta.env.DEV)addEventListener('message',e=>{const t=e.data?.prepTestPlan;if(typeof t==='string'){input.value=t;try{validate();status('Plan gültig (Test).');}catch(x){status(String(x));}void refresh();}});
 if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prepTestFile as {monster:string;kind:'token'|'stats';name:string;dataUrl:string}|undefined;if(!d)return;
-  const b=await (await fetch(d.dataUrl)).blob();try{roster.choose(d.monster,d.kind,new File([b],d.name,{type:b.type}));}catch(x){status(String(x));}});
+  const b=await (await fetch(d.dataUrl)).blob();roster.choose(d.monster,d.kind,new File([b],d.name,{type:b.type})).catch(x=>status(String(x)));});
 if(OBR.isAvailable)OBR.onReady(async()=>{connected=true;setButtons();status('Mit Owlbear verbunden.');await run(async()=>{await guard(false);await refresh();await roster.load(status);await draft.load(status);});OBR.scene.onReadyChange(async ready=>{el<HTMLInputElement>('confirm').checked=false;el('reveals').replaceChildren();if(ready)await refresh();});});

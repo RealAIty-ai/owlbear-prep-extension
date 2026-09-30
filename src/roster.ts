@@ -1,6 +1,7 @@
 import OBR,{buildImageUpload} from '@owlbear-rodeo/sdk';
 import type {ImageContent,ImageGrid} from '@owlbear-rodeo/sdk';
 import {parseStats} from './stats';
+import {makeToken,type Shape} from './token';
 // Monsterliste pro Raum: Name, HP/RK, zugeordnete Owlbear-Bilder. Lokale Dateien nur bis zum Upload im Speicher.
 export type Asset={image:ImageContent;grid:ImageGrid};
 export type Monster={name:string;hp?:number;ac?:number;size?:number;token?:Asset;stats?:Asset};
@@ -24,8 +25,10 @@ async function read(m:Monster,file:File){
   if(r.hp)m.hp=r.hp;if(r.ac)m.ac=r.ac;if(r.size)m.size=r.size;await save();
   say(r.hp&&r.ac?`${m.name}: HP ${r.hp}, RK ${r.ac}${r.size?`, Größe ${r.size}`:''} erkannt – bitte prüfen.`:`${m.name}: ${r.hp?'':'HP '}${r.ac?'':'RK '}nicht erkannt – bitte eintragen.`);
 }
-export function choose(m:Monster|string,kind:'token'|'stats',file:File){
+// Tokenbilder werden vor dem Upload zugeschnitten (Motiv quadratisch, optional rund), Statblocks bleiben unverändert.
+export async function choose(m:Monster|string,kind:'token'|'stats',file:File){
   const x=typeof m==='string'?find(m):m;if(!x)throw Error(`Monster „${m}“ nicht in der Liste.`);
+  if(kind==='token')file=await makeToken(file,(document.getElementById('tokenShape') as HTMLSelectElement|null)?.value as Shape??'round');
   const e=pending.get(norm(x.name))??{};e[kind]=file;pending.set(norm(x.name),e);render();
   if(kind==='stats')read(x,file).catch(e=>say(`OCR fehlgeschlagen: ${e instanceof Error?e.message:e}. Werte bitte eintragen.`));
 }
@@ -35,7 +38,10 @@ function slot(m:Monster,kind:'token'|'stats',label:string){
   const p=pending.get(norm(m.name))?.[kind],s=document.createElement('span'),b=document.createElement('span'),l=document.createElement('label');
   s.className=m[kind]&&!p?'ok':'warn';s.textContent=p?`${p.name} – noch nicht hochgeladen`:m[kind]?'in Owlbear ✓':'fehlt';
   b.className='btn';b.textContent=m[kind]||p?'ändern …':'wählen …';l.className='file';l.append(f,label,b,s);
-  f.onchange=()=>{const file=f.files?.[0];if(file)choose(m,kind,file);};return l;
+  f.onchange=()=>{const file=f.files?.[0];if(file)choose(m,kind,file).catch(e=>say(`Bild konnte nicht verarbeitet werden: ${e instanceof Error?e.message:e}`));};
+  // Vorschau: zugeschnittenes Token (lokal) bzw. das Bild in Owlbear.
+  const src=p?URL.createObjectURL(p):m[kind]?.image.url;if(src&&kind==='token')l.insertBefore(Object.assign(document.createElement('img'),{src,width:40,height:40,alt:'',style:'object-fit:contain;border-radius:4px;background:#0d161c'}),b);
+  return l;
 }
 function num(m:Monster,k:'hp'|'ac'|'size',label:string){const i=document.createElement('input');i.type='number';i.min=k==='hp'?'1':k==='size'?'0.5':'0';if(k==='size')i.step='0.5';i.value=m[k]?.toString()??'';
   i.onchange=()=>{const v=Number(i.value);m[k]=i.value&&(k==='size'||Number.isInteger(v))&&v>=Number(i.min)?v:undefined;void save();};return field(label,i);}
@@ -50,7 +56,7 @@ export function render(){
 }
 // Ein Upload-Dialog für alle ausstehenden Bilder, danach Zuordnung über den Asset-Namen „Prep <Monster> Token|Stats“.
 export async function upload(){
-  const ups=[];for(const m of roster){const p=pending.get(norm(m.name));if(p?.token)ups.push(buildImageUpload(p.token).name(assetName(m.name,'Token')).build());if(p?.stats)ups.push(buildImageUpload(p.stats).name(assetName(m.name,'Stats')).build());}
+  const ups=[];for(const m of roster){const p=pending.get(norm(m.name));if(p?.token)ups.push(buildImageUpload(p.token).dpi(512).name(assetName(m.name,'Token')).build());if(p?.stats)ups.push(buildImageUpload(p.stats).name(assetName(m.name,'Stats')).build());}
   if(!ups.length)throw Error('Keine ausstehenden Bilder. Erst Token/Statblock-Dateien wählen.');
   await OBR.assets.uploadImages(ups,'CHARACTER');await link();
 }

@@ -44,9 +44,10 @@ input[type=number]{width:56px;padding:5px;border-radius:5px;border:1px solid #50
 
 <section>
 <h2>3 · Monster: Bilder und Werte</h2>
-<p class="hint">Übernimm die Monster aus dem Abenteuer oder trage sie von Hand ein. Pro Monster ein Tokenbild und einen Statblock-Screenshot wählen – HP, RK und Größe werden daraus gelesen, bitte prüfen. Zum Schluss alle Bilder in Owlbear hochladen und im Auswahldialog die „Prep …“-Bilder markieren.</p>
+<p class="hint">Übernimm die Monster aus dem Abenteuer oder trage sie von Hand ein. Pro Monster ein Tokenbild und einen Statblock-Screenshot wählen. Das Tokenbild wird automatisch auf das Motiv zugeschnitten (quadratisch, auf Wunsch rund); HP, RK und Größe werden aus dem Statblock gelesen, bitte prüfen. Zum Schluss alle Bilder in Owlbear hochladen und im Auswahldialog die „Prep …“-Bilder markieren.</p>
 <div class="row"><button id="toRoster">Monster aus dem Abenteuer übernehmen</button></div>
 <div class="row"><input id="newName" placeholder="Weiteres Monster, z. B. Gray Ooze" maxlength="80" style="flex:1;width:auto"><button id="add" class="secondary">Hinzufügen</button></div>
+<label class="field">Tokenform beim Zuschneiden<select id="tokenShape"><option value="round">rund mit Rand</option><option value="square">quadratisch</option></select></label>
 <div id="roster"></div>
 <div class="row"><button id="uploadAssets" disabled>Bilder in Owlbear hochladen</button><button id="linkAssets" class="secondary" disabled>Bereits hochgeladene zuordnen</button></div>
 </section>
