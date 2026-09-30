@@ -27,7 +27,7 @@ npm run dev
 
 1. Owlbear-Profil → Extensions → Add Extension → `http://localhost:5173/manifest.json`
 2. Extension im Raum aktivieren und als GM oben in der Leiste **Prep** öffnen.
-3. Der Checkliste oben im Popover folgen.
+3. Der Assistent führt in fünf Schritten: Karten → Abenteuer → Räume → Monster → Aufbau. Oben siehst du, welche Schritte erledigt sind; beim Öffnen geht es beim ersten offenen Schritt weiter.
 
 Der Dev-Server muss auf deinem Rechner laufen, solange du die Extension nutzt. Unter Windows scheitert `npm run dev` in Pfaden mit `&` (z. B. `D:\D&D\…`) – Ordner verschieben oder `node node_modules/vite/bin/vite.js` starten.
 
@@ -42,7 +42,7 @@ Der Dev-Server muss auf deinem Rechner laufen, solange du die Extension nutzt. U
    - **aus einem Screenshot** mit Statblock *und* Bild (z. B. D&D-Beyond-Monsterseite) – die Extension trennt beides, stellt das Bild frei und macht ein Token daraus.
 
    HP, RK und Größe werden aus dem Statblock gelesen (bitte prüfen). Neue Bilder: „Bilder in Owlbear hochladen“ → Owlbear-Dialog bestätigen → „Hochgeladene zuordnen“.
-5. **Plan erzeugen und aufbauen** – Alles wird verborgen angelegt. „Plan entfernen“ löscht nur, was dieser Plan angelegt hat.
+5. **Aufbau** – Eine Zusammenfassung zeigt vorab, was fehlt (z. B. Monster ohne HP/RK oder ohne Bild, nicht markierte Räume, Rasterskala). **Aufbauen** bzw. **Neu aufbauen** erzeugt den Plan frisch und ersetzt einen bestehenden Aufbau erst, wenn der neue vollständig vorbereitet ist. Alles wird verborgen angelegt.
 
 ## Inhalte und Urheberrecht
 
@@ -72,7 +72,7 @@ npm test        # Unit-Tests (node --test)
 
 | Datei | Aufgabe |
 |---|---|
-| `index.html`, `src/main.ts` | Popover, Plan prüfen/aufbauen/entfernen |
+| `index.html`, `src/main.ts`, `src/wizard.ts` | Popover mit Schritt-Assistent, Plan prüfen/aufbauen/entfernen |
 | `src/plan.ts` | Plan-Schema (Grenze zwischen Planung und Ausführung) |
 | `src/adventure.ts` | Abenteuer-Markdown: Räume, Monster, Schatz/Falle |
 | `src/draft.ts`, `src/draft-keys.ts` | Entwurf, Markierungen, Plan erzeugen, Checkliste |
@@ -102,7 +102,7 @@ MIT – siehe [LICENSE](LICENSE). Kein offizielles Produkt von Owlbear Rodeo, Wi
 - Monster images from disk (auto-cropped tokens), from your Owlbear library, or split from one screenshot that shows statblock and art. HP, AC and size are read by in-browser OCR.
 - Builds hidden tokens with HP/AC in [Stat Bubbles for D&D](https://extensions.owlbear.rodeo/bubble-tracker), numbered names, statblocks beside the map and hidden treasure/trap notes. Sizes follow the statblock and the scene grid scale.
 
-**Quick start:** Node.js 22.12+, then `npm ci` and `npm run dev`. In Owlbear: Profile → Extensions → Add Extension → `http://localhost:5173/manifest.json`, open **Prep** as GM and follow the checklist.
+**Quick start:** Node.js 22.12+, then `npm ci` and `npm run dev`. In Owlbear: Profile → Extensions → Add Extension → `http://localhost:5173/manifest.json`, open **Prep** as GM and follow the five-step assistant.
 
 **Content:** code only – no adventure texts, maps or art. Use material you own; the local `abenteuer/` folder is git-ignored.
 
