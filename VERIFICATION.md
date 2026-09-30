@@ -135,3 +135,9 @@ Aufbau live (Szene auf 10 ft umgestellt, Bilder/Statblocks vom DM gesetzt): 4 Sp
 - Aufbau: verborgenes Rechteck auf dem NOTE-Layer (gelb Schatz, rot Falle) mit angehängtem Text.
 - Live (Lost Tomb): 3 Notizen (Schatz 3, Falle 4, Schatz 5) neben den Räumen, verborgen; „Plan entfernen“ entfernt sie mit.
 - NICHT geprüft: Spieleransicht; Owlbear-eigene Notes (Bild-Assets) werden nicht verwendet.
+
+## Bilder aus der Owlbear-Bibliothek, 30.09.2026
+
+- Je Bild-Slot Knopf „aus Owlbear …“: öffnet Owlbears Asset-Auswahl, vorgefiltert auf den Monsternamen (Token: Charaktere); gewähltes Bild wird ohne Upload zugeordnet.
+- Live: Auswahl öffnet sich mit Suche „Hook Horror“; mit einem Testeintrag einen Statblock aus der Bibliothek gewählt → OCR über die Owlbear-Bild-URL funktioniert (HP 152, RK 8, Größe 3). Testeintrag danach entfernt.
+- Bibliotheks-Tokens werden nicht zugeschnitten (sind meist schon Tokens).

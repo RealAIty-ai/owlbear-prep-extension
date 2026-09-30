@@ -16,6 +16,7 @@ export const find=(name:string)=>roster.find(m=>norm(m.name)===norm(name));
 let say:(s:string)=>void=()=>{};
 async function save(){render();if(online)await OBR.room.setMetadata({[KEY]:roster});}
 export function add(name:string){name=name.trim();if(!name||find(name))return false;roster.push({name});void save();return true;}
+export function removeByName(n:string){const m=find(n);if(m)remove(m);}
 function remove(m:Monster){roster=roster.filter(x=>x!==m);pending.delete(norm(m.name));void save();}
 // Kleine Statblock-Schrift: 2× hochskaliert in Graustufen liest Tesseract Ziffern deutlich zuverlässiger (z. B. „AC 8“ statt „ACS“).
 async function prep(file:File){const b=await createImageBitmap(file),c=document.createElement('canvas');c.width=b.width*2;c.height=b.height*2;const g=c.getContext('2d')!;g.imageSmoothingQuality='high';g.filter='grayscale(1) contrast(1.4)';g.drawImage(b,0,0,c.width,c.height);return c;}
@@ -35,6 +36,13 @@ export async function choose(m:Monster|string,kind:'token'|'stats',file:File){
   if(kind==='stats')read(x,file).catch(e=>say(`OCR fehlgeschlagen: ${e instanceof Error?e.message:e}. Werte bitte eintragen.`));
 }
 function field(label:string,node:HTMLElement){const l=document.createElement('label');l.append(label,' ',node);return l;}
+// Bild direkt aus der Owlbear-Bibliothek wählen (kein Upload). Beim Statblock wird zusätzlich versucht, HP/RK/Größe zu lesen.
+export async function pick(m:Monster,kind:'token'|'stats'){
+  const [g]=await OBR.assets.downloadImages(false,m.name,kind==='token'?'CHARACTER':undefined);if(!g)return;
+  m[kind]={image:g.image,grid:g.grid};pending.get(norm(m.name))&&delete pending.get(norm(m.name))![kind];await save();
+  say(`${m.name}: ${kind==='token'?'Tokenbild':'Statblock'} „${g.name}“ aus Owlbear übernommen.`);
+  if(kind==='stats'){try{const b=await (await fetch(g.image.url)).blob();await read(m,new File([b],g.name,{type:b.type}));}catch{say(`${m.name}: Statblock übernommen, aber Owlbear erlaubt das Auslesen nicht – HP/RK/Felder bitte eintragen.`);}}
+}
 function slot(m:Monster,kind:'token'|'stats',label:string){
   const f=document.createElement('input');f.type='file';f.accept='image/png,image/jpeg,image/webp';f.hidden=true;
   const p=pending.get(norm(m.name))?.[kind],s=document.createElement('span'),b=document.createElement('span'),l=document.createElement('label');
@@ -43,7 +51,9 @@ function slot(m:Monster,kind:'token'|'stats',label:string){
   f.onchange=()=>{const file=f.files?.[0];if(file)choose(m,kind,file).catch(e=>say(`Bild konnte nicht verarbeitet werden: ${e instanceof Error?e.message:e}`));};
   // Vorschau: zugeschnittenes Token (lokal) bzw. das Bild in Owlbear.
   const src=p?URL.createObjectURL(p):m[kind]?.image.url;if(src&&kind==='token')l.insertBefore(Object.assign(document.createElement('img'),{src,width:40,height:40,alt:'',style:'object-fit:contain;border-radius:4px;background:#0d161c'}),b);
-  return l;
+  // Zweiter Weg: Bild aus der Owlbear-Bibliothek (außerhalb des label, damit kein Dateidialog aufgeht).
+  const ob=document.createElement('button');ob.className='secondary';ob.textContent='aus Owlbear …';ob.onclick=()=>pick(m,kind).catch(e=>say(`Auswahl fehlgeschlagen: ${e instanceof Error?e.message:e}`));
+  const row=document.createElement('div');row.className='row';row.append(l,ob);return row;
 }
 function num(m:Monster,k:'hp'|'ac'|'size',label:string){const i=document.createElement('input');i.type='number';i.min=k==='hp'?'1':k==='size'?'0.5':'0';if(k==='size')i.step='0.5';i.value=m[k]?.toString()??'';
   i.onchange=()=>{const v=Number(i.value);m[k]=i.value&&(k==='size'||Number.isInteger(v))&&v>=Number(i.min)?v:undefined;void save();};return field(label,i);}

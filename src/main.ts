@@ -73,7 +73,9 @@ if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prep
       maps:items.filter(i=>i.layer==='MAP').map(i=>({id:i.id,name:i.name,visible:i.visible,position:i.position,scale:i.scale,rotation:i.rotation,grid:(i as {grid?:unknown}).grid,image:(i as unknown as {image?:{width:number;height:number}}).image})),
       own:own.map(i=>({name:i.name,layer:i.layer,visible:i.visible,label:(i as {text?:{plainText:string}}).text?.plainText,meta:i.metadata[NS]??i.metadata['de.soenke.owlbear-prep/mark']})),
       roster:(await OBR.room.getMetadata())['de.soenke.owlbear-prep/roster'],plan:input.value,status:el('status').textContent,sel:Array.from(el<HTMLSelectElement>('mapSel').options).map(o=>o.text),ready:await OBR.scene.isReady(),mapTypes:items.filter(i=>i.layer==='MAP').map(i=>i.type),lm:await listMaps().then(()=>'ok',x=>String(x)),marking:(await OBR.player.getMetadata())['de.soenke.owlbear-prep/marking'],activeTool:await OBR.tool.getActiveTool()}},'*');}
+  if(typeof e.data?.prepTestRemove==='string')roster.removeByName(e.data.prepTestRemove);
   if(typeof e.data?.prepTestMark==='number')await draft.mark(e.data.prepTestMark);
+  const pk=e.data?.prepTestPick as {monster:string;kind:'token'|'stats'}|undefined;if(pk){roster.add(pk.monster);const m=roster.find(pk.monster);if(m)await roster.pick(m,pk.kind).catch(x=>status(String(x)));}
   if(typeof e.data?.prepTestClear==='number')await draft.clearPoints(e.data.prepTestClear);
   if(v){const x=el<HTMLSelectElement>(v.id);x.value=v.value;x.dispatchEvent(new Event('change'));}
   if(d){const b=await (await fetch(d.url)).blob(),dt=new DataTransfer();dt.items.add(new File([b],d.name,{type:b.type}));const x=el<HTMLInputElement>(d.id);x.files=dt.files;x.dispatchEvent(new Event('change'));}});
