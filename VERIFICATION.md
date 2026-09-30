@@ -126,4 +126,4 @@ Gefunden und behoben:
 - Checkliste „nächster Schritt“ oben im Popover.
 
 Live bestätigt: Karten vorbelegt, Dungeon mit 4 Specter/1 Wraith, Markieren auf der Spielerkarte, Hinweis bei Klick auf Punkt, Alt+Klick löscht, Plan mit 5 Monstern in Raum 3 und 5.
-NICHT live geprüft: Aufbau dieses Plans, Skalenumrechnung bei 10-ft-Szene (Szene steht noch auf 5 ft).
+Aufbau live (Szene auf 10 ft umgestellt, Bilder/Statblocks vom DM gesetzt): 4 Specter (22/22) in Raum 3, Wraith (67/67) in Raum 5, je Statblock neben der Karte, Größe ½ Feld. Fehler behoben: halbe Felder rasteten auf Feldmitten ein und lagen paarweise übereinander – kleine Tokens rasten jetzt in ihrem eigenen Raster.

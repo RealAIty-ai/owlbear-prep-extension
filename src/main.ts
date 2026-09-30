@@ -33,7 +33,8 @@ el('build').onclick=()=>run(async()=>{
   // Nummern je Monstertyp fortsetzen, auch über frühere Pläne hinweg; Nummer steht nur im Stat-Bubbles-Namen.
   for(const i of scene){const x=i.metadata[NS] as {kind?:string;type?:string;n?:number}|undefined;if(x?.kind==='monster'&&x.type&&x.n)count.set(x.type,Math.max(count.get(x.type)??0,x.n));}
   // Tokenmitte am Szenenraster einrasten: gerade Größen auf Kreuzungen, sonst auf Feldmitten (Karte darf gegenüber dem Raster verschoben sein).
-  const snap=(v:number,s:number)=>(Number.isInteger(s)&&s%2===0?Math.round(v/dpi):Math.floor(v/dpi)+0.5)*dpi;
+  // Kleine Tokens (< 1 Feld) rasten in ihrem eigenen Raster ein, damit mehrere in ein Feld passen.
+  const snap=(v:number,s:number)=>(s<1?(Math.floor(v/dpi/s)+0.5)*s:Number.isInteger(s)&&s%2===0?Math.round(v/dpi):Math.floor(v/dpi)+0.5)*dpi;
   for(const m of p.monsters){const position={x:snap(o.x+m.x*dpi,m.size),y:snap(o.y+m.y*dpi,m.size)},type=m.type??m.name,e=roster.find(type),hp=e?.hp??m.hp,ac=e?.ac??m.ac,asset=e?.token;
     if(!hp||ac===undefined)throw Error(`HP/RK fehlen für „${m.name}“ (Monsterliste „${type}“ oder Plan).`);
     if(e?.stats&&!placed.has(e.name)){placed.add(e.name);const w=e.stats.image.width;items.push(buildImage(e.stats.image,{dpi:w/6,offset:{x:0,y:0}}).position({x:mr.x+mr.w+dpi,y:sy}).layer('PROP').name(`${e.name} Statblock`).visible(false).metadata(tag(p.id,'statblock',m.id)).build());sy+=e.stats.image.height*6*dpi/w+dpi/2;}
