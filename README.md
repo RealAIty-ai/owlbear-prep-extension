@@ -11,7 +11,7 @@ You bring the material you own – the adventure as Markdown (e.g. a D&D Beyond 
 
 - **Adventure import:** finds dungeons with numbered areas (`### 2. Name`), suggests monsters per area (bold creature names, counts like “four”, “each”) and treasure/trap sections.
 - **Mark areas:** a GM tool places hidden markers on the player map (Alt+click removes, move with Owlbear's move tool); the DM map is only a reference for room numbers.
-- **Monster roster:** token image and statblock screenshot per monster – from your disk or picked directly from your Owlbear asset library. Tokens are auto-cropped (square or round); HP, AC and size are read from the statblock via in-browser OCR (tesseract.js) and stay editable.
+- **Monster roster:** token image and statblock screenshot per monster – from your disk, picked directly from your Owlbear asset library, or split from **one screenshot containing both** (e.g. a D&D Beyond monster page: statblock and art are detected, the art is cut out and turned into a token, frames can be redrawn). Tokens are auto-cropped (square or round); HP, AC and size are read from the statblock via in-browser OCR (tesseract.js) and stay editable.
 - **Plan → build:** generates a validated JSON plan and builds it: hidden image tokens with HP/AC in [Stat Bubbles for D&D](https://extensions.owlbear.rodeo/bubble-tracker), statblocks beside the map, numbered names (“Gray Ooze 1, 2 …”, Alt+drag copies are renumbered), hidden notes for treasure (yellow) and traps (red). Token size follows the statblock and the scene grid scale (e.g. 10 ft per square).
 - **Safe removal:** “remove plan” deletes only what this plan created.
 
@@ -61,7 +61,7 @@ Das Popover führt in 5 Schritten, eine Checkliste oben zeigt den nächsten Schr
 
 1. **Karten:** Spielerkarte (darauf wird gespielt) und DM-Karte (mit Raumnummern, unsichtbar daneben) wählen. Vorschlag anhand des Namens bzw. bei zwei Karten automatisch. Die Spielerkarte in Owlbear auf das gedruckte Raster ausrichten und die Rasterskala (5 ft / 10 ft) passend einstellen.
 2. **Abenteuer:** Markdown-Datei laden, Dungeon übernehmen. Pro Raum Monster/Anzahl prüfen („je Punkt“ = ein Monster an jeder markierten Stelle), Schatz-/Fallen-Notizen aufklappen und bearbeiten. Mit **Markieren** jede Stelle des Raums auf der Spielerkarte anklicken (roter Punkt, für Spieler verborgen). Klick auf einen Punkt zeigt nur einen Hinweis, **Alt+Klick löscht**, verschieben mit dem Bewegen-Werkzeug.
-3. **Monster:** aus dem Abenteuer übernehmen oder von Hand hinzufügen. Je Monster Tokenbild und Statblock-Screenshot wählen: von der Festplatte („wählen …“, Token wird zugeschnitten, danach hochladen und zuordnen) oder direkt aus der Owlbear-Bibliothek („aus Owlbear …“, sofort zugeordnet). HP, RK und Größe werden aus dem Statblock gelesen. „Bilder in Owlbear hochladen“, im Owlbear-Dialog bestätigen, dann „Hochgeladene zuordnen“ – die Auswahl zeigt nur die Bilder dieses Uploads.
+3. **Monster:** aus dem Abenteuer übernehmen oder von Hand hinzufügen. Je Monster Tokenbild und Statblock-Screenshot wählen: von der Festplatte („wählen …“, Token wird zugeschnitten, danach hochladen und zuordnen) oder direkt aus der Owlbear-Bibliothek („aus Owlbear …“, sofort zugeordnet). Mit **„Screenshot zerlegen …“** reicht ein Screenshot mit Statblock und Monsterbild: Die Extension findet beide Bereiche (blauer/grüner Rahmen, bei Bedarf neu ziehen), stellt das Bild frei und macht daraus ein Token. HP, RK und Größe werden aus dem Statblock gelesen. „Bilder in Owlbear hochladen“, im Owlbear-Dialog bestätigen, dann „Hochgeladene zuordnen“ – die Auswahl zeigt nur die Bilder dieses Uploads.
 4. **Plan:** „Plan erzeugen“ (optional als JSON speichern oder eigenen Plan einfügen). Nicht markierte Räume landen in einer Ablage unter der Karte.
 5. **Aufbauen:** Szene bestätigen, „In dieser Szene aufbauen“. Alles wird verborgen angelegt; „Plan entfernen“ löscht nur Elemente dieses Plans.
 
@@ -89,6 +89,7 @@ Das Popover führt in 5 Schritten, eine Checkliste oben zeigt den nächsten Schr
 | `src/adventure.ts` | Parser für Abenteuer-Markdown (Räume, Monster, Schatz/Falle) |
 | `src/draft.ts`, `src/draft-keys.ts` | Dungeon-Entwurf, Markierungen, Plan erzeugen, Checkliste |
 | `src/roster.ts`, `src/stats.ts`, `src/token.ts` | Monsterliste, Upload, OCR, Statblock-Parser, Token-Zuschnitt |
+| `src/split.ts`, `src/splitui.ts` | Screenshot in Statblock und Monsterbild zerlegen, Hintergrund freistellen |
 | `src/scene.ts` | Kartengeometrie, Verteilung, Rasterskala, Stat Bubbles, Nummerierung |
 | `src/background.ts`, `background.html` | Hintergrund: Markier-Werkzeug, Nummerierung von Kopien |
 

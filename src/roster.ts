@@ -2,6 +2,7 @@ import OBR,{buildImageUpload} from '@owlbear-rodeo/sdk';
 import type {ImageContent,ImageGrid} from '@owlbear-rodeo/sdk';
 import {parseStats} from './stats';
 import {makeToken,type Shape} from './token';
+import {openSplitter} from './splitui';
 // Monsterliste pro Raum: Name, HP/RK, zugeordnete Owlbear-Bilder. Lokale Dateien nur bis zum Upload im Speicher.
 export type Asset={image:ImageContent;grid:ImageGrid};
 export type Monster={name:string;hp?:number;ac?:number;size?:number;token?:Asset;stats?:Asset};
@@ -35,6 +36,8 @@ export async function choose(m:Monster|string,kind:'token'|'stats',file:File){
   const e=pending.get(norm(x.name))??{};e[kind]=file;pending.set(norm(x.name),e);render();
   if(kind==='stats')read(x,file).catch(e=>say(`OCR fehlgeschlagen: ${e instanceof Error?e.message:e}. Werte bitte eintragen.`));
 }
+export async function splitShot(m:Monster|string,file:File){const x=typeof m==='string'?find(m):m;if(!x)throw Error(`Monster „${m}“ nicht in der Liste.`);
+  return openSplitter(file,x.name,async(stats,token)=>{if(token)await choose(x,'token',token);if(stats)await choose(x,'stats',stats);say(`${x.name}: Screenshot zerlegt – Token und Statblock übernommen, Werte werden gelesen. Danach hochladen und zuordnen.`);});}
 function field(label:string,node:HTMLElement){const l=document.createElement('label');l.append(label,' ',node);return l;}
 // Bild direkt aus der Owlbear-Bibliothek wählen (kein Upload). Beim Statblock wird zusätzlich versucht, HP/RK/Größe zu lesen.
 export async function pick(m:Monster,kind:'token'|'stats'){
@@ -64,7 +67,10 @@ export function render(){
     lg.textContent=m.name;row.className='row';rm.textContent='Entfernen';rm.className='secondary';rm.onclick=()=>remove(m);
     // Größe zur Kontrolle in Fuß/Metern: 1 Feld = 5 ft ≈ 1,5 m.
     const sz=document.createElement('span');sz.className='hint';sz.textContent=m.size?`= ${m.size*5} ft ≈ ${(m.size*1.5).toLocaleString('de-DE')} m`:'';
-    row.append(num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),sz,rm);fs.append(lg,slot(m,'token','Tokenbild'),slot(m,'stats','Statblock'),row);box.append(fs);}
+    row.append(num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),sz,rm);// Ein Screenshot mit Statblock und Monsterbild: wird zerlegt und als beides übernommen.
+    const sf=document.createElement('input');sf.type='file';sf.accept='image/png,image/jpeg,image/webp';sf.hidden=true;const sl=document.createElement('label');sl.className='file';const sb=document.createElement('span');sb.className='btn';sb.textContent='Screenshot zerlegen …';sl.append(sf,sb,Object.assign(document.createElement('span'),{className:'hint',textContent:'Statblock + Bild in einem'}));
+    sf.onchange=()=>{const f=sf.files?.[0];if(f)splitShot(m,f).catch(e=>say(`Screenshot konnte nicht zerlegt werden: ${e instanceof Error?e.message:e}`));};
+    fs.append(lg,slot(m,'token','Tokenbild'),slot(m,'stats','Statblock'),sl,row);box.append(fs);}
   if(!roster.length)box.append(Object.assign(document.createElement('p'),{className:'hint',textContent:'Noch keine Monster.'}));
 }
 // Ein Upload-Dialog für alle ausstehenden Bilder, danach Zuordnung über den Asset-Namen „Prep <Monster> Token|Stats“.

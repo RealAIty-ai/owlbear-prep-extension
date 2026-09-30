@@ -141,3 +141,10 @@ Aufbau live (Szene auf 10 ft umgestellt, Bilder/Statblocks vom DM gesetzt): 4 Sp
 - Je Bild-Slot Knopf „aus Owlbear …“: öffnet Owlbears Asset-Auswahl, vorgefiltert auf den Monsternamen (Token: Charaktere); gewähltes Bild wird ohne Upload zugeordnet.
 - Live: Auswahl öffnet sich mit Suche „Hook Horror“; mit einem Testeintrag einen Statblock aus der Bibliothek gewählt → OCR über die Owlbear-Bild-URL funktioniert (HP 152, RK 8, Größe 3). Testeintrag danach entfernt.
 - Bibliotheks-Tokens werden nicht zugeschnitten (sind meist schon Tokens).
+
+## Screenshot zerlegen, 30.09.2026
+
+- Neu: Statblock + Monsterbild in einem Screenshot. Hintergrund = häufigste Randfarbe, Blöcke über leere Spalten/Zeilen getrennt, Statblock = am stärksten gefüllter Block, Bild = größter übriger; Freistellen per Flood-Fill vom Rand. Vorschau mit Rahmen, neu ziehbar. 3 Tests (synthetisches Bild).
+- Token-Zuschnitt: freigestellte Figuren (> 5 % transparent) werden ganz eingepasst statt beschnitten (Kopf blieb sonst weg). 2 Tests.
+- Live mit Gnoll-Screenshot (D&D-Beyond-Layout): Statblock x 4–764 und Bild x 792–1128 erkannt; Statblock ergibt HP 22, RK 15, Größe 1; rundes Token mit ganzer Figur, Hintergrund transparent.
+- NICHT geprüft: Upload/Aufbau mit dem zerlegten Gnoll-Token; andere Layouts (Buchseite mit Fließtext ums Bild); Rahmen per Maus neu ziehen.
