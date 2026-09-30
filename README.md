@@ -1,62 +1,84 @@
-# Owlbear Prep — Szenenvorbereitung für Owlbear Rodeo
+# Owlbear Prep
 
-Stand: 30.09.2026. Persönlicher Prototyp für Sönke, läuft lokal über den Vite-Dev-Server. Nicht veröffentlicht.
+**Scene preparation for [Owlbear Rodeo](https://www.owlbear.rodeo) from your adventure text, maps and statblocks.**
+*Szenenvorbereitung für Owlbear Rodeo aus Abenteuertext, Karten und Statblocks – deutsche Beschreibung unten.*
 
-Aus Abenteuertext, offizieller Spieler- und DM-Karte sowie eigenen Token- und Statblock-Bildern entsteht eine vorbereitete Owlbear-Szene: verborgene Monster mit Stat Bubbles, Statblocks daneben, nummerierte Namen.
+Status: working prototype, runs locally via the Vite dev server. Not listed in the Owlbear extension store. UI and in-depth docs are German.
 
-## In 5 Minuten starten
+## What it does
 
-Voraussetzung: Node.js 22.12+ (empfohlen: Node 24), Owlbear-Konto mit GM-Rolle, empfohlen die Extension „Stat Bubbles for D&D“.
+You bring the material you own – the adventure as Markdown (e.g. a D&D Beyond export), the official player and DM map, token images and statblock screenshots. The extension turns them into a prepared scene:
 
-Hinweis Windows: Liegt der Projektordner in einem Pfad mit `&` (z. B. `D:\D&D\…`), scheitert `npm run dev`. Ordner verschieben oder `node node_modules/vite/bin/vite.js` direkt starten.
+- **Adventure import:** finds dungeons with numbered areas (`### 2. Name`), suggests monsters per area (bold creature names, counts like “four”, “each”) and treasure/trap sections.
+- **Mark areas:** a GM tool places hidden markers on the player map (Alt+click removes, move with Owlbear's move tool); the DM map is only a reference for room numbers.
+- **Monster roster:** token image and statblock screenshot per monster. Tokens are auto-cropped (square or round); HP, AC and size are read from the statblock via in-browser OCR (tesseract.js) and stay editable.
+- **Plan → build:** generates a validated JSON plan and builds it: hidden image tokens with HP/AC in [Stat Bubbles for D&D](https://extensions.owlbear.rodeo/bubble-tracker), statblocks beside the map, numbered names (“Gray Ooze 1, 2 …”, Alt+drag copies are renumbered), hidden notes for treasure (yellow) and traps (red). Token size follows the statblock and the scene grid scale (e.g. 10 ft per square).
+- **Safe removal:** “remove plan” deletes only what this plan created.
+
+No AI API, no keys, no backend. Everything runs in your browser; only the OCR language data is loaded once from the jsDelivr CDN.
+
+## Quick start
+
+Requirements: Node.js 22.12+ (Node 24 recommended), an Owlbear Rodeo account with GM role, ideally the *Stat Bubbles for D&D* extension.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-1. Owlbear-Profil → Extensions → Add Extension, Installationslink `http://localhost:5173/manifest.json`. Extension im Raum aktivieren und als GM öffnen („Prep“ in der oberen Leiste).
-2. **Karten:** Spielerkarte als Szene (ggf. über „Spielerkarte als neue Szene anlegen“), Raster auf die gedruckten Kästchen ausrichten. DM-Karte mit Raumnummern als zweites Kartenbild daneben legen und unsichtbar machen. Im Popover beide Karten auswählen.
-3. **Abenteuer:** Abenteuerdatei (Markdown, D&D-Beyond-Export) wählen, Dungeon übernehmen. Pro Raum Monster/Anzahl prüfen; mit „Markieren“ jede Stelle des Raums auf der **Spielerkarte** anklicken (roter Punkt, für Spieler verborgen). Alt+Klick auf einen Punkt löscht ihn, verschieben mit dem Bewegen-Werkzeug. Die Checkliste oben im Popover zeigt, was noch fehlt.
-4. **Monster:** „Monster aus dem Abenteuer übernehmen“, je Monster Tokenbild und Statblock-Screenshot wählen (HP/RK/Größe werden gelesen, prüfen), „Bilder in Owlbear hochladen“ und im Auswahldialog die „Prep …“-Bilder markieren.
-5. **Plan:** „Plan erzeugen“ (optional als JSON speichern oder ansehen/einfügen).
-6. **Aufbauen:** Szene bestätigen, „In dieser Szene aufbauen“. Alles ist verborgen; „Plan entfernen“ löscht nur Elemente dieses Plans. Duplikate (Alt+Drag) werden automatisch weiter nummeriert.
+1. Owlbear profile → Extensions → Add Extension → `http://localhost:5173/manifest.json`.
+2. Enable it in a room, open **Prep** in the top toolbar as GM.
+3. Follow the checklist at the top of the popover: maps → adventure → mark areas → images → plan → build.
 
-Der lokale Server läuft auf DEINEM Computer. Ein Server in einer entfernten Coding-Umgebung ist nicht dein localhost. Kein Öffnen per Doppelklick/file://. Falls der Browser eine lokale Netzwerkfreigabe verlangt, für diese Entwicklungsverbindung erlauben. Die Extension muss nur beim DM laufen; Szenenelemente liegen in Owlbear. Verwendete Bilder kommen aus Owlbear, nicht von lokalen Bild-URLs.
+The dev server must run on your own computer while you use the extension. On Windows, a project path containing `&` breaks `npm run dev`; move the folder or run `node node_modules/vite/bin/vite.js`.
+
+## Content and copyright
+
+This repository contains **code only**. Adventure texts, maps, token art and statblocks are not included and must not be committed – use material you own. The local folder `abenteuer/` is git-ignored for that purpose. Hidden items in Owlbear are not a secrecy mechanism: they are part of the scene data.
+
+## Contributing
+
+`main` is protected: changes go through a branch and a pull request.
+
+```sh
+npm run build   # type check + production build
+npm test        # unit tests (node --test)
+```
+
+Structure, plan format and limits: German sections below; live-test log in `VERIFICATION.md`, goals in `PROJECT_BRIEF.md`.
+
+## License
+
+MIT – see [LICENSE](LICENSE). Not affiliated with Owlbear Rodeo, Wizards of the Coast or D&D Beyond.
+
+---
+
+# Deutsch
 
 ## Was die Extension kann
 
-**Live in Owlbear geprüft** (Details in VERIFICATION.md):
-- Popover mit 5 Schritten: Karten → Abenteuer → Monster → Plan → Aufbauen. Statuszeile bleibt beim Scrollen sichtbar.
-- **Karten:** Spieler- und DM-Karte aus den Kartenbildern der Szene wählen; Vorschlag anhand des Namens („player/spieler“, „dm“). Positionen werden relativ zur oberen linken Kartenecke gerechnet.
-- **Abenteuertext:** Markdown im D&D-Beyond-Exportformat laden. Dungeons = Abschnitte mit nummerierten Bereichen („### 2. Name“), Monster = kleingeschriebene Fettungen, Eigennamen = großgeschriebene. Anzahl aus Zahlwörtern, „each“ = ein Monster je markierter Stelle. Alles ist ein bearbeitbarer Vorschlag.
-- **Bereiche markieren:** Werkzeug „Prep: Bereiche markieren“ in der Owlbear-Werkzeugleiste. Klicks auf die DM-Karte werden als Kartenanteil gespeichert und mit einer verborgenen roten Nummer quittiert. Die Ansicht springt beim Markieren zur DM-Karte.
-- **Monsterliste** (im Raum gespeichert): je Monster Tokenbild und Statblock-Screenshot. HP, RK und Größe per OCR (tesseract.js im Browser; beim ersten Mal werden die Erkennungsdaten vom CDN jsdelivr geladen, der Screenshot bleibt lokal). Werte sind editierbar.
-- **Bilder hochladen:** ein Owlbear-Upload-Dialog für alle Bilder; Zuordnung über die Asset-Namen „Prep <Monster> Token|Stats“.
-- **Plan erzeugen:** Monster je markierter Stelle, auf die Spielerkarte umgerechnet (gleiche Geometrie von DM- und Spielerkarte vorausgesetzt), nach Größe verteilt. Nicht markierte Bereiche landen in einer Ablage unter der Karte. Plan als JSON speicherbar.
-- **Aufbauen:** Bild-Tokens verborgen auf CHARACTER mit Stat Bubbles (HP/RK, für Spieler verborgen); Statblock einmal je Monsterart als verborgenes Bild daneben; Monster ohne Bild als Kreismarker mit verborgener HP/RK-Beschriftung. Name im Token-Label: „Gray Ooze 1“, „Gray Ooze 2“ …, benannte Einzelmonster (z. B. Glabbagool) mit ihrem Namen.
-- **Notizen:** Schätze („#### Treasure“) und Fallen („#### Trap“) aus dem Text werden als verborgene Zettel (gelb/rot) neben die Raummarkierung gelegt; Text im Popover editierbar.
-- **Nummerierung im Hintergrund:** Kopien eigener Monster (Alt+Drag, Duplizieren) bekommen die nächste freie Nummer, auch bei geschlossenem Popover; nur beim GM, frei umbenannte Tokens bleiben unangetastet.
-- **Sicherheit der Szene:** Zweiter Aufbau desselben Plans wird abgewiesen; „Plan entfernen“ löscht nur Elemente dieses Plans. Sichtblöcke (Rechtecke auf dem FOG-Layer) lassen sich aufdecken/verdecken.
+Das Popover führt in 5 Schritten, eine Checkliste oben zeigt den nächsten Schritt:
 
-**Gebaut, aber nicht live geprüft:** Spieleransicht (verborgene Tokens, Stat Bubbles, Statblocks), JSON-Download, Umbenennungsschutz, Nicht-GM-Rolle.
+1. **Karten:** Spielerkarte (darauf wird gespielt) und DM-Karte (mit Raumnummern, unsichtbar daneben) wählen. Vorschlag anhand des Namens bzw. bei zwei Karten automatisch. Die Spielerkarte in Owlbear auf das gedruckte Raster ausrichten und die Rasterskala (5 ft / 10 ft) passend einstellen.
+2. **Abenteuer:** Markdown-Datei laden, Dungeon übernehmen. Pro Raum Monster/Anzahl prüfen („je Punkt“ = ein Monster an jeder markierten Stelle), Schatz-/Fallen-Notizen aufklappen und bearbeiten. Mit **Markieren** jede Stelle des Raums auf der Spielerkarte anklicken (roter Punkt, für Spieler verborgen). Klick auf einen Punkt zeigt nur einen Hinweis, **Alt+Klick löscht**, verschieben mit dem Bewegen-Werkzeug.
+3. **Monster:** aus dem Abenteuer übernehmen oder von Hand hinzufügen. Je Monster Tokenbild (wird zugeschnitten) und Statblock-Screenshot (HP, RK, Größe per OCR) wählen. „Bilder in Owlbear hochladen“, im Owlbear-Dialog bestätigen, dann „Hochgeladene zuordnen“ – die Auswahl zeigt nur die Bilder dieses Uploads.
+4. **Plan:** „Plan erzeugen“ (optional als JSON speichern oder eigenen Plan einfügen). Nicht markierte Räume landen in einer Ablage unter der Karte.
+5. **Aufbauen:** Szene bestätigen, „In dieser Szene aufbauen“. Alles wird verborgen angelegt; „Plan entfernen“ löscht nur Elemente dieses Plans.
 
 ## Plan-Format (JSON, Version 1)
 
-`{version:1, id, name, monsters:[…], reveals:[…]}`, Schema in `src/plan.ts`, streng validiert (max. 100 Monster/100 Sichtblöcke, eindeutige IDs).
-- Monster: `id`, `name`, optional `type` (Monsterart aus der Monsterliste), `x`/`y` in Rasterfeldern ab oberer linker Ecke der Spielerkarte (Tokenmitte), `size` in Feldern, optional `hp`/`ac` (Rückfallwerte, sonst aus der Monsterliste).
-- Sichtblöcke: `id`, `name`, `x`, `y`, `width`, `height` in Rasterfeldern.
+`{version:1, id, name, monsters:[…], notes:[…], reveals:[…]}`, Schema in `src/plan.ts`, streng validiert.
+- **monsters:** `id`, `name`, optional `type` (Monsterart aus der Monsterliste), `x`/`y` in Rasterfeldern ab oberer linker Ecke der Spielerkarte (Tokenmitte), `size` in Rasterfeldern, optional `hp`/`ac`.
+- **notes** (optional): `id`, `name`, `kind` (`Schatz`/`Falle`), `x`/`y` (obere linke Ecke), `text`.
+- **reveals:** Sichtblöcke `id`, `name`, `x`, `y`, `width`, `height`.
 
 ## Grenzen
 
-- Keine KI-API, keine Schlüssel, kein Backend. Texterkennung und Parser sind regelbasiert; Ergebnisse immer prüfen.
-- Raumnummern auf Karten erkennt die OCR nicht (getestet) – deshalb Markieren per Klick.
-- Die Karte muss in Owlbear auf das gedruckte Raster ausgerichtet sein, sonst stimmen Tokengrößen und Abstände nicht.
-- DM- und Spielerkarte müssen dieselbe Geometrie haben (offizielle Kartenpaare); eigene Battlemaps mit anderem Grundriss werden nicht automatisch zugeordnet.
-- Verborgen ist kein Geheimnisschutz: Verborgene Items und Metadaten liegen in den Szenendaten.
-- Noch nicht umgesetzt: Sichtbereiche je Raum und als freie Formen, Luft-/Wasser-Tracker, Kampfablauf.
-- Stat-Bubbles-Anbindung nutzt deren Metadatenschema (`com.owlbear-rodeo-bubbles-extension/metadata`, aus Quellcode v1.9.13); ändert sich die Extension, muss `src/scene.ts` angepasst werden.
-- Kein Multi-GM-Schutz; Abenteuertexte und Buchbilder gehören nur in den ignorierten Ordner `abenteuer/`.
+- Parser und OCR sind regelbasiert; Ergebnisse immer prüfen. Raumnummern auf Kartenbildern werden nicht erkannt – deshalb Markieren per Klick.
+- Markieren auf der Spielerkarte funktioniert mit jeder Battlemap; wird auf der DM-Karte markiert, müssen beide Karten dieselbe Geometrie haben.
+- Owlbear-eigene „Notes“ (Bild-Assets) werden nicht genutzt; Notizen sind farbige Zettel auf dem NOTE-Layer.
+- Stat-Bubbles-Anbindung nutzt deren Metadatenschema (`com.owlbear-rodeo-bubbles-extension/metadata`, aus dem Quellcode v1.9.13).
+- Spieleransicht ist noch nicht live geprüft. Noch nicht umgesetzt: Sichtbereiche je Raum/als freie Form, Luft-/Wasser-Tracker, Kampfablauf.
 
 ## Aufbau
 
@@ -64,33 +86,15 @@ Der lokale Server läuft auf DEINEM Computer. Ein Server in einer entfernten Cod
 |---|---|
 | `index.html`, `src/main.ts` | Popover, Plan prüfen/aufbauen/entfernen, Sichtblöcke |
 | `src/plan.ts` | Plan-Schema (Grenze zwischen Planung und Ausführung) |
-| `src/adventure.ts` | Parser für Abenteuer-Markdown |
-| `src/draft.ts`, `src/draft-keys.ts` | Dungeon-Entwurf, Bereiche, Plan erzeugen |
-| `src/roster.ts`, `src/stats.ts` | Monsterliste, Bild-Upload, OCR und Statblock-Parser |
-| `src/scene.ts` | Kartengeometrie, Verteilung, Stat Bubbles, Nummerierung (ohne Owlbear testbar) |
-| `src/background.ts`, `background.html` | Hintergrundskript: Markier-Werkzeug, Nummerierung von Kopien |
+| `src/adventure.ts` | Parser für Abenteuer-Markdown (Räume, Monster, Schatz/Falle) |
+| `src/draft.ts`, `src/draft-keys.ts` | Dungeon-Entwurf, Markierungen, Plan erzeugen, Checkliste |
+| `src/roster.ts`, `src/stats.ts`, `src/token.ts` | Monsterliste, Upload, OCR, Statblock-Parser, Token-Zuschnitt |
+| `src/scene.ts` | Kartengeometrie, Verteilung, Rasterskala, Stat Bubbles, Nummerierung |
+| `src/background.ts`, `background.html` | Hintergrund: Markier-Werkzeug, Nummerierung von Kopien |
 
-## Verifikation
+## Quellen
 
-```sh
-npm run build
-npm test
-```
-
-Noch offen für einen vollständigen End-to-End-Nachweis in Owlbear:
-- Spieler sehen verborgene Monster, Stat Bubbles, Statblocks und Markierungen nicht.
-- Tokengrößen stimmen nach Rasterkalibrierung der Spielerkarte.
-- Reload, Szenenwechsel und Nicht-GM-Rolle verhalten sich erwartungsgemäß.
-
-## Weiterentwickeln
-
-Siehe PROJECT_BRIEF.md und AGENTS.md. Keine kommerziellen Abenteuertexte, Buchbilder oder fremden Token ins Repo committen. Eigene Testassets oder offen lizenzierte Materialien verwenden.
-
-Quellen (geprüft 30.09.2026):
 - https://docs.owlbear.rodeo/extensions/getting-started/
-- https://docs.owlbear.rodeo/extensions/tutorial-hello-world/install-your-extension/
-- https://docs.owlbear.rodeo/extensions/apis/assets/
-- https://docs.owlbear.rodeo/extensions/reference/builders/image/
 - https://docs.owlbear.rodeo/extensions/reference/manifest/ (`background_url`)
-- https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo (Stat-Bubbles-Metadaten, v1.9.13)
-- Installierte Typen des offiziellen @owlbear-rodeo/sdk 3.1.0 (Tool-, Viewport-, Assets-API)
+- https://github.com/SeamusFinlayson/Bubbles-for-Owlbear-Rodeo (Stat-Bubbles-Metadaten)
+- Offizielles `@owlbear-rodeo/sdk` 3.1.0

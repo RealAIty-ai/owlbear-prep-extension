@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Owlbear-Rodeo-Extension (Popover) für Sönkes D&D-Szenenvorbereitung. Persönlicher Prototyp v0.1, Dokumentation auf Deutsch.
+Owlbear-Rodeo-Extension (Popover) zur D&D-Szenenvorbereitung. Prototyp, Dokumentation auf Deutsch (README zusätzlich Englisch).
 
 Zuerst lesen: `PROJECT_BRIEF.md` (Ziel, Reihenfolge der Ausbauschritte), `AGENTS.md` (Arbeitsregeln – gelten auch hier), `README.md` (Live-Testablauf), `VERIFICATION.md` (was bewiesen ist und was nicht).
 
