@@ -108,3 +108,10 @@ Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestCl
 - Beim Wählen eines Tokenbilds: transparenten Rand abschneiden, mittig quadratisch auf das Motiv zuschneiden, optional rund mit Rand, 512×512-PNG; Upload mit Asset-DPI 512 (= 1 Feld). 4 Unit-Tests (Zuschnitt-Rechnung).
 - Browser-Test (lokale Seite) mit dem Gray-Ooze-Artwork (1000×874): rundes 512er-Token, Motiv füllt die Fläche, Vorschau in der Monsterliste.
 - NICHT live geprüft: Upload des zugeschnittenen Tokens nach Owlbear und Aufbau damit.
+
+## Live-Test Chrome, 30.09.2026 (7): zugeschnittenes Token, Statblocks neben der Karte
+
+- Zugeschnittenes Gray-Ooze-Token (rund, 512×512, Asset-DPI 512) über den Owlbear-Upload hochgeladen und zugeordnet („1 Bilder zugeordnet“); Aufbau zeigt runde Tokens in Feldgröße aus dem Statblock (Huge = 3).
+- Fehler gefunden: „Bilder hochladen“ rief die Zuordnung sofort auf – `uploadImages` kehrt zurück, bevor der DM den Owlbear-Dialog bestätigt → „0 Bilder zugeordnet“. Jetzt zwei Schritte (Hochladen, dann „Hochgeladene zuordnen“); jeder Upload bekommt eine Kennung (#abcd), die Auswahl zeigt nur diese Bilder.
+- Statblocks liegen jetzt untereinander rechts neben der Spielerkarte statt über den Räumen (live bestätigt).
+- NICHT live geprüft: Upload mit Kennung und gefilterte Zuordnung.

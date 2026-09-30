@@ -9,7 +9,9 @@ const KEY='de.soenke.owlbear-prep/roster',PREFIX='Prep ';
 let roster:Monster[]=[],online=false;
 const pending=new Map<string,{token?:File;stats?:File}>();
 const norm=(s:string)=>s.trim().toLowerCase();
-const assetName=(m:string,kind:'Token'|'Stats')=>`${PREFIX}${m} ${kind}`;
+// Jeder Upload bekommt eine Kennung (#abcd), damit die Auswahl danach nur die Bilder dieses Uploads zeigt; beim Zuordnen wird sie ignoriert.
+const assetName=(m:string,kind:'Token'|'Stats')=>`${PREFIX}${m} ${kind}`,plain=(s:string)=>s.replace(/\s+#[a-z0-9]{4}$/i,'');
+let batch:string|undefined;
 export const find=(name:string)=>roster.find(m=>norm(m.name)===norm(name));
 let say:(s:string)=>void=()=>{};
 async function save(){render();if(online)await OBR.room.setMetadata({[KEY]:roster});}
@@ -56,13 +58,16 @@ export function render(){
 }
 // Ein Upload-Dialog für alle ausstehenden Bilder, danach Zuordnung über den Asset-Namen „Prep <Monster> Token|Stats“.
 export async function upload(){
-  const ups=[];for(const m of roster){const p=pending.get(norm(m.name));if(p?.token)ups.push(buildImageUpload(p.token).dpi(512).name(assetName(m.name,'Token')).build());if(p?.stats)ups.push(buildImageUpload(p.stats).name(assetName(m.name,'Stats')).build());}
+  batch=Math.random().toString(36).slice(2,6);const tag=` #${batch}`;
+  const ups=[];for(const m of roster){const p=pending.get(norm(m.name));if(p?.token)ups.push(buildImageUpload(p.token).dpi(512).name(assetName(m.name,'Token')+tag).build());if(p?.stats)ups.push(buildImageUpload(p.stats).name(assetName(m.name,'Stats')+tag).build());}
   if(!ups.length)throw Error('Keine ausstehenden Bilder. Erst Token/Statblock-Dateien wählen.');
-  await OBR.assets.uploadImages(ups,'CHARACTER');await link();
+  // uploadImages kehrt zurück, bevor der DM den Owlbear-Dialog bestätigt hat – deshalb Zuordnen als eigener Schritt.
+  await OBR.assets.uploadImages(ups,'CHARACTER');
+  say(`Owlbear-Upload geöffnet (${ups.length} Bilder, Kennung #${batch}). Im Owlbear-Dialog „Upload“ bestätigen, danach hier „Hochgeladene zuordnen“ klicken und alle angezeigten Bilder auswählen.`);
 }
 export async function link(){
-  const got=await OBR.assets.downloadImages(true,PREFIX.trim(),'CHARACTER');let n=0;
-  for(const g of got)for(const m of roster)for(const kind of ['token','stats'] as const)if(norm(g.name)===norm(assetName(m.name,kind==='token'?'Token':'Stats'))){m[kind]={image:g.image,grid:g.grid};const p=pending.get(norm(m.name));if(p)delete p[kind];n++;}
+  const got=await OBR.assets.downloadImages(true,batch?`#${batch}`:PREFIX.trim(),'CHARACTER');let n=0;
+  for(const g of got)for(const m of roster)for(const kind of ['token','stats'] as const)if(norm(plain(g.name))===norm(assetName(m.name,kind==='token'?'Token':'Stats'))){m[kind]={image:g.image,grid:g.grid};const p=pending.get(norm(m.name));if(p)delete p[kind];n++;}
   await save();const miss=roster.filter(m=>!m.token||!m.stats).map(m=>m.name);
   say(`${n} Bilder zugeordnet.${miss.length?` Noch ohne Token/Statblock: ${miss.join(', ')}.`:''}`);
 }
