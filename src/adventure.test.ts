@@ -15,8 +15,12 @@ Each of these keyed rooms holds a **skeleton** that rises when disturbed.
 Three **zombies** kneel here. A **skeleton** waits too.
 The priest **Morvek** hides behind the altar with a **giant rat**.
 #### Treasure
-A **Morvek** ring.
+A **Morvek** ring and *12 gp*.
+#### Development
+The priest flees.
 ### 4. Pits
+#### Trap
+A pit opens below. DC 12 to notice.
 The four guards have risen as **wights**. Some **specters** drift here.
 At the bottom of each pit is a **gray ooze**.
 ## Next Section
@@ -26,3 +30,5 @@ test('dungeons are sections with numbered areas',()=>assert.deepEqual(parseAdven
 test('monsters with counts, plural and each',()=>{const [c]=parseAdventure(md);assert.deepEqual(c.areas[1].monsters,[{type:'Skeleton',count:1,each:true}]);assert.deepEqual(c.areas[2].monsters,[{type:'Zombie',count:3,each:false},{type:'Skeleton',count:1,each:false},{type:'Giant Rat',count:1,each:false}]);assert.deepEqual(c.areas[3].monsters,[{type:'Wight',count:4,each:false},{type:'Specter',count:1,each:false},{type:'Gray Ooze',count:1,each:true}]);});
 test('capitalized bold text is a name, not a monster',()=>{const [c]=parseAdventure(md);assert.deepEqual(c.areas[2].names,['Morvek']);assert.deepEqual(c.areas[0].monsters,[]);});
 test('singular forms',()=>assert.deepEqual(['oozes','zombies','boxes','bass','wolf'].map(singular),['ooze','zombie','box','bass','wolf']));
+test('treasure and trap subsections become notes',()=>{const [c]=parseAdventure(md);assert.deepEqual(c.areas[2].notes,[{kind:'Schatz',text:'A Morvek ring and 12 gp.'}]);assert.equal(c.areas[3].notes[0].kind,'Falle');assert.match(c.areas[3].notes[0].text,/^A pit opens below\. DC 12 to notice\./);assert.deepEqual(c.areas[0].notes,[]);});
+test('notes end at the next chapter',()=>{const [d]=parseAdventure(['## Crypt','### 1. Vault','#### Treasure','10 gp.','# Chapter 2','Intro of the next chapter.'].join(String.fromCharCode(10)));assert.deepEqual(d.areas[0].notes,[{kind:'Schatz',text:'10 gp.'}]);});

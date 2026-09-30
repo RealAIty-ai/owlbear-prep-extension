@@ -127,3 +127,11 @@ Gefunden und behoben:
 
 Live bestätigt: Karten vorbelegt, Dungeon mit 4 Specter/1 Wraith, Markieren auf der Spielerkarte, Hinweis bei Klick auf Punkt, Alt+Klick löscht, Plan mit 5 Monstern in Raum 3 und 5.
 Aufbau live (Szene auf 10 ft umgestellt, Bilder/Statblocks vom DM gesetzt): 4 Specter (22/22) in Raum 3, Wraith (67/67) in Raum 5, je Statblock neben der Karte, Größe ½ Feld. Fehler behoben: halbe Felder rasteten auf Feldmitten ein und lagen paarweise übereinander – kleine Tokens rasten jetzt in ihrem eigenen Raster.
+
+## Notizen für Schätze und Fallen, 30.09.2026
+
+- Parser: Unterabschnitte „#### Treasure“ → Schatz, „#### Trap(s)/Hazard(s)“ → Falle, bis zur nächsten Überschrift/Kapitelgrenze (Fehler behoben: Notiz lief ins nächste Kapitel). 3 Tests.
+- Plan v1 um optionales `notes` erweitert (Schema-Test). Notiz neben der ersten Markierung des Bereichs, sonst Ablage unter der Karte; im Popover je Bereich aufklappbar und editierbar.
+- Aufbau: verborgenes Rechteck auf dem NOTE-Layer (gelb Schatz, rot Falle) mit angehängtem Text.
+- Live (Lost Tomb): 3 Notizen (Schatz 3, Falle 4, Schatz 5) neben den Räumen, verborgen; „Plan entfernen“ entfernt sie mit.
+- NICHT geprüft: Spieleransicht; Owlbear-eigene Notes (Bild-Assets) werden nicht verwendet.

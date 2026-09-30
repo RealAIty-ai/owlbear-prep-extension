@@ -35,6 +35,7 @@ Der lokale Server läuft auf DEINEM Computer. Ein Server in einer entfernten Cod
 - **Bilder hochladen:** ein Owlbear-Upload-Dialog für alle Bilder; Zuordnung über die Asset-Namen „Prep <Monster> Token|Stats“.
 - **Plan erzeugen:** Monster je markierter Stelle, auf die Spielerkarte umgerechnet (gleiche Geometrie von DM- und Spielerkarte vorausgesetzt), nach Größe verteilt. Nicht markierte Bereiche landen in einer Ablage unter der Karte. Plan als JSON speicherbar.
 - **Aufbauen:** Bild-Tokens verborgen auf CHARACTER mit Stat Bubbles (HP/RK, für Spieler verborgen); Statblock einmal je Monsterart als verborgenes Bild daneben; Monster ohne Bild als Kreismarker mit verborgener HP/RK-Beschriftung. Name im Token-Label: „Gray Ooze 1“, „Gray Ooze 2“ …, benannte Einzelmonster (z. B. Glabbagool) mit ihrem Namen.
+- **Notizen:** Schätze („#### Treasure“) und Fallen („#### Trap“) aus dem Text werden als verborgene Zettel (gelb/rot) neben die Raummarkierung gelegt; Text im Popover editierbar.
 - **Nummerierung im Hintergrund:** Kopien eigener Monster (Alt+Drag, Duplizieren) bekommen die nächste freie Nummer, auch bei geschlossenem Popover; nur beim GM, frei umbenannte Tokens bleiben unangetastet.
 - **Sicherheit der Szene:** Zweiter Aufbau desselben Plans wird abgewiesen; „Plan entfernen“ löscht nur Elemente dieses Plans. Sichtblöcke (Rechtecke auf dem FOG-Layer) lassen sich aufdecken/verdecken.
 
@@ -53,7 +54,7 @@ Der lokale Server läuft auf DEINEM Computer. Ein Server in einer entfernten Cod
 - Die Karte muss in Owlbear auf das gedruckte Raster ausgerichtet sein, sonst stimmen Tokengrößen und Abstände nicht.
 - DM- und Spielerkarte müssen dieselbe Geometrie haben (offizielle Kartenpaare); eigene Battlemaps mit anderem Grundriss werden nicht automatisch zugeordnet.
 - Verborgen ist kein Geheimnisschutz: Verborgene Items und Metadaten liegen in den Szenendaten.
-- Noch nicht umgesetzt: Notes für Schätze/Fallen, Sichtbereiche je Raum und als freie Formen, Luft-/Wasser-Tracker, Kampfablauf.
+- Noch nicht umgesetzt: Sichtbereiche je Raum und als freie Formen, Luft-/Wasser-Tracker, Kampfablauf.
 - Stat-Bubbles-Anbindung nutzt deren Metadatenschema (`com.owlbear-rodeo-bubbles-extension/metadata`, aus Quellcode v1.9.13); ändert sich die Extension, muss `src/scene.ts` angepasst werden.
 - Kein Multi-GM-Schutz; Abenteuertexte und Buchbilder gehören nur in den ignorierten Ordner `abenteuer/`.
 

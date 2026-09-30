@@ -22,7 +22,7 @@ export function init(status:(s:string)=>void){say=status;
     const sel=$<HTMLSelectElement>('dungeon');sel.replaceChildren(new Option(`– ${dungeons.length} Dungeons gefunden –`,''),...dungeons.map((d,i)=>new Option(`${d.title} (${d.areas.length} Bereiche)`,String(i))));say(`${dungeons.length} Dungeons mit nummerierten Bereichen gefunden.`);};
   $<HTMLButtonElement>('takeDungeon').onclick=()=>{const d=dungeons[Number($<HTMLSelectElement>('dungeon').value)];if(!d)return say('Erst Abenteuertext laden und Dungeon wählen.');
     if(counts.size&&draft&&draft.dungeon!==d.title)return say(`Die Szene hat noch Markierungen für „${draft.dungeon}“. Erst dort „Punkte löschen“ oder die Markierungen in Owlbear entfernen.`);
-    draft={dungeon:d.title,dmMap:draft?.dmMap,playerMap:draft?.playerMap,areas:d.areas.map(a=>({...a,monsters:a.monsters.map(m=>({...m}))}))};void save();say(`„${d.title}“ übernommen. Monster prüfen, dann in die Monsterliste übernehmen.`);};
+    draft={dungeon:d.title,dmMap:draft?.dmMap,playerMap:draft?.playerMap,areas:d.areas.map(a=>({...a,monsters:a.monsters.map(m=>({...m})),notes:a.notes.map(n=>({...n}))}))};void save();say(`„${d.title}“ übernommen. Monster prüfen, dann in die Monsterliste übernehmen.`);};
   $<HTMLSelectElement>('dmSel').onchange=()=>{if(draft){draft.dmMap=$<HTMLSelectElement>('dmSel').value||undefined;void save();}};
   $<HTMLButtonElement>('toRoster').onclick=()=>{if(!draft)return;const n=[...new Set(draft.areas.flatMap(a=>a.monsters.map(m=>m.type)))].filter(roster.add).length;say(`${n} Monster in die Monsterliste übernommen. Jetzt Token/Statblock je Monster wählen.`);};
   $<HTMLButtonElement>('makePlan').onclick=()=>makePlan().catch(e=>say(e instanceof Error?e.message:String(e)));
@@ -61,7 +61,7 @@ export function render(){
     const add=h('button',{textContent:'+ Monster',className:'secondary'});add.onclick=()=>{a.monsters.push({type:'Monster',count:1,each:false});void save();};
     const mk=h('button',{textContent:'Markieren'}),cl=h('button',{textContent:'Punkte löschen',className:'secondary'});mk.onclick=()=>void mark(i);cl.onclick=()=>void clearPoints(i);
     box.append(h('fieldset',{},h('legend',{},`${a.no}. ${a.name}`),
-      ...(a.names.length?[h('p',{className:'warn'},`Namen im Text: ${a.names.join(', ')}`)]:[]),...rows,
+      ...(a.names.length?[h('p',{className:'warn'},`Namen im Text: ${a.names.join(', ')}`)]:[]),...rows,...(a.notes??[]).map(n=>{const t=h<HTMLTextAreaElement>('textarea',{value:n.text,rows:4});t.onchange=()=>{n.text=t.value.trim();void save();};return h('details',{},h('summary',{},`${n.kind==='Schatz'?'💰 Schatz':'⚠️ Falle'} (${n.text.length} Zeichen) – wird als verborgene Notiz angelegt`),t);}),
       h('div',{className:'row'},add,mk,cl,h('span',{className:counts.get(a.no)?'ok':'warn'},` ${counts.get(a.no)??0} Markierung(en)`))));
   });
 }
@@ -71,7 +71,7 @@ async function makePlan(){
   if(!draft)throw Error('Erst einen Dungeon übernehmen.');
   const player=$<HTMLSelectElement>('mapSel').value;if(!player)throw Error('Erst die Spielerkarte (Ursprungskarte) wählen.');
   const dpi=await OBR.scene.grid.getDpi(),scale=await OBR.scene.grid.getScale(),[pm]=await OBR.scene.items.getItems([player]);if(!pm)throw Error('Spielerkarte nicht gefunden.');
-  const r=mapRect(pm as unknown as MapLike,dpi),monsters:{id:string;name:string;type:string;x:number;y:number;size:number}[]=[],missing:string[]=[];
+  const r=mapRect(pm as unknown as MapLike,dpi),monsters:{id:string;name:string;type:string;x:number;y:number;size:number}[]=[],notes:{id:string;name:string;kind:'Schatz'|'Falle';x:number;y:number;text:string}[]=[],missing:string[]=[];
   // Bereiche ohne Punkt landen in einer Ablage unter der Spielerkarte (eine Zeile je Bereich), damit kein Monster aus dem Text fehlt.
   let shelf=r.h/dpi+2,off=0;
   const others=(await OBR.scene.items.getItems(i=>i.layer==='MAP'&&i.type==='IMAGE'&&i.id!==player)).map(i=>mapRect(i as unknown as MapLike,dpi)),inside=(b:{x:number;y:number;w:number;h:number},p:{x:number;y:number})=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h;
@@ -86,7 +86,11 @@ async function makePlan(){
       here.forEach((t,k)=>{const s=sz(t),x=p?p.u*r.w/dpi+off[k].x:(sx+=s+1)-s-1+s/2,y=p?p.v*r.h/dpi+off[k].y:shelf+size/2;
         monsters.push({id:`a${a.no}-${pi+1}-${k+1}`.toLowerCase().replace(/[^a-z0-9-]/g,''),name:named??t,type:t,x:+x.toFixed(2),y:+y.toFixed(2),size:s});});
       if(!p)shelf+=size+1;});}
+  // Notizen: neben der ersten Markierung des Bereichs (untereinander), sonst in einer Ablage unter der Karte (rechte Hälfte).
+  let noteShelf=r.h/dpi+2;
+  for(const a of draft.areas)(a.notes??[]).filter(n=>n.text).forEach((n,k)=>{const p=pointsOf.get(a.no)?.[0];
+    notes.push({id:`n${a.no}-${k+1}`.toLowerCase().replace(/[^a-z0-9-]/g,''),name:`${n.kind} – Bereich ${a.no} ${a.name}`.slice(0,120),kind:n.kind,x:+(p?p.u*r.w/dpi+1:r.w/dpi/2).toFixed(2),y:+(p?p.v*r.h/dpi-0.5+k*4:noteShelf).toFixed(2),text:n.text.slice(0,4000)});if(!p)noteShelf+=5;});
   const id=draft.dungeon.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50)||'dungeon';
-  $<HTMLTextAreaElement>('plan').value=JSON.stringify({version:1,id,name:draft.dungeon,monsters,reveals:[]},null,2);progress();
-  say(`Plan mit ${monsters.length} Monstern erzeugt.${missing.length?` Noch nicht markiert (liegen in der Ablage unter der Karte): Bereich ${missing.join(', ')}.`:''}${off?` ${off} Markierung(en) liegen außerhalb beider Karten und wurden ignoriert.`:''} Prüfen, dann aufbauen.`);
+  $<HTMLTextAreaElement>('plan').value=JSON.stringify({version:1,id,name:draft.dungeon,monsters,notes,reveals:[]},null,2);progress();
+  say(`Plan mit ${monsters.length} Monstern und ${notes.length} Notizen erzeugt.${missing.length?` Noch nicht markiert (liegen in der Ablage unter der Karte): Bereich ${missing.join(', ')}.`:''}${off?` ${off} Markierung(en) liegen außerhalb beider Karten und wurden ignoriert.`:''} Prüfen, dann aufbauen.`);
 }

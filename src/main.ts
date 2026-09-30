@@ -16,7 +16,7 @@ const owned=(i:Item,id:string)=>(i.metadata[NS] as {planId?:string}|undefined)?.
 function setButtons(){for(const id of buttons)el<HTMLButtonElement>(id).disabled=!connected||busy;}
 async function guard(scene=true){if(!connected)throw Error('Bitte in Owlbear öffnen.');if(await OBR.player.getRole()!=='GM')throw Error('Nur als GM verfügbar.');if(scene&&!await OBR.scene.isReady())throw Error('Zuerst eine Testszene öffnen.');}
 async function run(action:()=>Promise<void>){if(busy)return;busy=true;setButtons();try{await action();}catch(e){status(e instanceof Error?e.message:String(e));}finally{busy=false;setButtons();}}
-function validate(){const p=parse();draft.progress();el('summary').textContent=`Plan „${p.name}“: ${p.monsters.length} Monster, ${p.reveals.length} Sichtblöcke. Bild-Tokens bekommen Stat Bubbles, Monster ohne Bild einen Kreismarker.`;return p;}
+function validate(){const p=parse();draft.progress();el('summary').textContent=`Plan „${p.name}“: ${p.monsters.length} Monster, ${(p.notes??[]).length} Notizen, ${p.reveals.length} Sichtblöcke. Bild-Tokens bekommen Stat Bubbles, Monster ohne Bild einen Kreismarker.`;return p;}
 el('validate').onclick=()=>{try{validate();status('Plan gültig.');}catch(e){status(String(e));}};
 const addName=()=>{const i=el<HTMLInputElement>('newName');if(roster.add(i.value))i.value='';else status('Name leer oder schon vorhanden.');};
 el('add').onclick=addName;el<HTMLInputElement>('newName').onkeydown=e=>{if(e.key==='Enter')addName();};
@@ -44,6 +44,10 @@ el('build').onclick=()=>run(async()=>{
     token.metadata[NS]={planId:p.id,kind:'monster',sourceId:m.id,type,n,hp,maxHp:hp,ac};items.push(token);
     if(asset){token.metadata[BUBBLES]=bubbles(hp,ac);}else items.push(buildText().textType('PLAIN').plainText(`${label}\nHP ${hp} | RK ${ac}`).position({x:position.x,y:position.y+m.size*dpi/2+12}).fontSize(20).layer('TEXT').visible(false).attachedTo(token.id).disableAttachmentBehavior(['VISIBLE']).metadata(tag(p.id,'stats',m.id)).build());
   }
+  // Notizen: verborgener Zettel (gelb = Schatz, rot = Falle) auf dem NOTE-Layer mit angehängtem Text; Höhe grob aus der Textlänge geschätzt.
+  for(const n of p.notes??[]){const w=5*dpi,fs=Math.round(dpi*0.15),cpl=Math.max(10,Math.floor((w-24)/(fs*0.55))),body=`${n.name}\n\n${n.text}`,lines=body.split('\n').reduce((k,l)=>k+Math.max(1,Math.ceil(l.length/cpl)),0),hgt=lines*fs*1.45+32,pos={x:o.x+n.x*dpi,y:o.y+n.y*dpi};
+    const bg=buildShape().shapeType('RECTANGLE').width(w).height(hgt).position(pos).fillColor(n.kind==='Schatz'?'#f4e3a1':'#f2b8b0').fillOpacity(0.95).strokeColor('#5b4a2a').strokeWidth(2).layer('NOTE').visible(false).name(n.name).metadata(tag(p.id,'note',n.id)).build();
+    items.push(bg,buildText().textType('PLAIN').plainText(body).width(w-24).fontSize(fs).fillColor('#1d1a14').position({x:pos.x+12,y:pos.y+12}).layer('NOTE').visible(false).locked(true).attachedTo(bg.id).name(n.name).metadata(tag(p.id,'note-text',n.id)).build());}
   for(const r of p.reveals)items.push(buildShape().shapeType('RECTANGLE').width(r.width*dpi).height(r.height*dpi).position({x:o.x+r.x*dpi,y:o.y+r.y*dpi}).layer('FOG').fillColor('#000000').fillOpacity(1).strokeWidth(0).name(r.name).locked(true).metadata(tag(p.id,'reveal',r.id)).build());
   await OBR.scene.items.addItems(items);status(`${items.length} Elemente angelegt. Gegner verborgen. Positionen und Spielersicht prüfen.`);await refresh();
 });
