@@ -1,0 +1,11 @@
+# Arbeitsregeln
+- Lies PROJECT_BRIEF.md und README.md zuerst.
+- Vermeide neue Services/Frameworks ohne konkreten Bedarf.
+- ScenePlan ist die Grenze zwischen KI-Planung und deterministischer Ausführung.
+- Keine D&D-Werte erfinden oder Beispiele als offizielle Regeln ausgeben.
+- Keine API-Schlüssel im Browser, keine privaten Assets im Git-Repo.
+- Nur eigenen Metadata-Namespace verändern; Drittintegration erst nach Verifikation.
+- Mutationen auf aktuellen Raum/GM/Scene und eigene Item-IDs begrenzen.
+- Hidden ist kein kryptografischer Geheimnisschutz. Prüfe Spieleransicht.
+- npm run build und npm test vor Übergabe. Live-Verifikation separat dokumentieren.
+- Kein öffentliches Deployment oder Push ohne konkretes Ziel und Nutzerauftrag.
