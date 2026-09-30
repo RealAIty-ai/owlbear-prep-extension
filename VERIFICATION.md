@@ -84,3 +84,4 @@ Hinweis: Dev-Test-Einstiege (`postMessage`: prepTestFile/prepTestPlan/prepTestCl
 - „Plan erzeugen“: 12 Monster (3 Gray Ooze, Glabbagool mit Namen, 4 Black Pudding je Grube, 4 Gray Ooze in 5). Unmarkierte Bereiche landen in einer Ablage unter der Karte statt zu fehlen.
 - Beobachtung: Spielerkarte hat Raster-DPI 150 = Szenen-DPI, das gedruckte 5-ft-Raster ist aber ca. 100 px → Tokens erscheinen zu groß. Karte in Owlbear aufs gedruckte Raster kalibrieren.
 - NICHT geprüft: Aufbau dieses Plans in der Szene, JSON-Download.
+- Aufbau des erzeugten Plans „the-oozing-temple“: 18 Elemente (7 Gray Ooze mit Bild/Label 1–7, 1 Statblock, Cube + 4 Puddings als Kreismarker). Monster liegen in den richtigen Bereichen, aber zu groß/überlappend (Größe 3 für alle aus der Monsterliste + Karte nicht aufs gedruckte Raster kalibriert). Label für benannte Kreismarker korrigiert (Glabbagool).
