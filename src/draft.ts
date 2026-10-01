@@ -9,14 +9,16 @@ import {DRAFT,TOOL,MARK_NS,MARK_LABEL,MARKING,type Draft,type Mark} from './draf
 let dungeons:Dungeon[]=[],draft:Draft|undefined,say:(s:string)=>void=()=>{},counts=new Map<string,number>(),current:number|undefined;
 type Marked={area:string;i:number;x:number;y:number};
 async function marks():Promise<Marked[]>{return (await OBR.scene.items.getItems(i=>!!i.metadata[MARK_NS])).map(i=>{const m=i.metadata[MARK_NS] as Mark;return {area:m.area,i:m.i,x:i.position.x+(m.dx??0),y:i.position.y+(m.dy??0)};}).sort((a,b)=>a.i-b.i);}
-async function recount(){const before=counts;counts=new Map();for(const m of await marks())counts.set(m.area,(counts.get(m.area)??0)+1);render();void recountBuilt();
+// Zählung nur übernehmen, wenn sie die jüngste ist: überlappende Läufe (mehrere onChange-Meldungen kurz nacheinander) dürfen sich nicht gegenseitig überschreiben.
+let countRun=0;
+async function recount(){const run=++countRun,list=await marks();if(run!==countRun)return;const before=counts,next=new Map<string,number>();for(const m of list)next.set(m.area,(next.get(m.area)??0)+1);counts=next;render();void recountBuilt();
   const c=current!==undefined?draft?.areas[current]:undefined;if(c&&(counts.get(c.no)??0)>(before.get(c.no)??0))say(`Bereich ${c.no} (${c.name}): ${counts.get(c.no)} Markierung(en). Weiter klicken; Alt+Klick auf eine Markierung löscht sie.`);}
 const $=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 function h<T extends HTMLElement=HTMLElement>(tag:string,props:Record<string,unknown>={},...kids:(Node|string)[]):T{const e=Object.assign(document.createElement(tag),props) as T;e.append(...kids);return e;}
 async function save(){render();await OBR.scene.setMetadata({[DRAFT]:draft});}
 export async function load(status:(s:string)=>void){say=status;draft=(await OBR.scene.getMetadata())[DRAFT] as Draft|undefined;await recount();
   OBR.scene.onMetadataChange(m=>{draft=m[DRAFT] as Draft|undefined;render();});
-  OBR.scene.items.onChange(items=>{const n=items.filter(i=>i.metadata[MARK_NS]).length,old=[...counts.values()].reduce((a,b)=>a+b,0);if(n!==old||n)void recount();else void recountBuilt();});
+  OBR.scene.items.onChange(()=>void recount());
   OBR.scene.grid.onChange(()=>void recountBuilt());}
 export function init(status:(s:string)=>void){say=status;
   $<HTMLInputElement>('advFile').onchange=async e=>{const f=(e.target as HTMLInputElement).files?.[0];if(!f)return;dungeons=parseAdventure(await f.text());
@@ -91,6 +93,7 @@ export function render(){
 // über den Kartenanteil übertragen (gleiche Geometrie vorausgesetzt).
 export const has=()=>!!draft;
 export async function makePlan(){
+  await recount();
   if(!draft)throw Error('Erst einen Dungeon übernehmen.');
   const player=$<HTMLSelectElement>('mapSel').value;if(!player)throw Error('Erst die Spielerkarte (Ursprungskarte) wählen.');
   const dpi=await OBR.scene.grid.getDpi(),scale=await OBR.scene.grid.getScale(),[pm]=await OBR.scene.items.getItems([player]);if(!pm)throw Error('Spielerkarte nicht gefunden.');
