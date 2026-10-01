@@ -1,6 +1,7 @@
 import OBR,{buildShape,buildText,isImage,type Image,type Item} from '@owlbear-rodeo/sdk';
 import {labelNumber,mapRect,renumber,type MapLike} from './scene';
 import {DRAFT,MARK_LABEL,MARK_NS,MARKING,TOOL,type Draft,type Mark} from './draft-keys';
+import {outlineModes,renderOutlines} from './outlines-bg';
 // Läuft dauerhaft im Raum (auch ohne offenes Popover): Alt+Drag-Kopien eigener Monster bekommen die nächste freie Nummer im Token-Label („Name“ im Kontextmenü).
 const NS='de.soenke.owlbear-prep/item';
 type Meta={kind?:string;type?:string;n?:number};
@@ -41,9 +42,15 @@ async function tools(){
   const icon=new URL('/icon.svg',location.href).href;
   await OBR.tool.create({id:TOOL,icons:[{icon,label:'Prep: Bereiche markieren',filter:{roles:['GM']}}],defaultMode:`${TOOL}/click`});
   await OBR.tool.createMode({id:`${TOOL}/click`,icons:[{icon,label:'Bereich markieren',filter:{activeTools:[TOOL]}}],cursors:[{cursor:'crosshair'}],onToolClick:(_c,e)=>{void markClick(e.pointerPosition,e.target,e.altKey);return false;}});
+  await outlineModes(icon);
 }
 OBR.onReady(async()=>{void tools();
+  // Raum-Badge am Prep-Symbol nur, solange das Markier-/Umriss-Werkzeug aktiv ist.
+  OBR.tool.onToolChange(id=>{if(id!==TOOL)void OBR.action.setBadgeText(undefined);});
   gm=await OBR.player.getRole()==='GM';OBR.player.onChange(p=>{gm=p.role==='GM';});
-  OBR.scene.onReadyChange(r=>{known=new Set();if(r)void sync();});if(await OBR.scene.isReady())await sync();
+  // Umriss-Vorschau nur beim GM (lokale Items), neu aufbauen bei Szenenwechsel und Entwurfsänderung.
+  const outlines=()=>{if(gm)void renderOutlines().catch(()=>{});};
+  OBR.scene.onReadyChange(r=>{known=new Set();if(r){void sync();outlines();}});if(await OBR.scene.isReady()){await sync();outlines();}
+  let last='';OBR.scene.onMetadataChange(m=>{const k=JSON.stringify((m[DRAFT] as Draft|undefined)?.areas.map(a=>a.outlines)??null);if(k!==last){last=k;outlines();}});
   OBR.scene.items.onChange(()=>void sync());
 });

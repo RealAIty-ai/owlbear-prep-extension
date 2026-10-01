@@ -86,6 +86,9 @@ if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prep
   if(e.data?.prepTestAreas&&e.source)(e.source as Window).postMessage({prepAreas:Array.from(document.querySelectorAll('#areas summary small'),x=>x.textContent)},'*');
   if(typeof e.data?.prepTestRemove==='string')roster.removeByName(e.data.prepTestRemove);
   if(typeof e.data?.prepTestMark==='number')await draft.mark(e.data.prepTestMark);
+  if(typeof e.data?.prepTestClearOutlines==='number')await draft.clearOutlines(e.data.prepTestClearOutlines);
+  const om=e.data?.prepTestOutline as {i:number;mode:'rect'|'poly'}|undefined;if(om)await draft.mark(om.i,om.mode);
+  if(e.data?.prepTestOutlines&&e.source)(e.source as Window).postMessage({prepOutlines:((await OBR.scene.getMetadata())['de.soenke.owlbear-prep/draft'] as {areas:{no:string;outlines?:unknown[]}[]}|undefined)?.areas.map(a=>[a.no,a.outlines??[]]),local:(await OBR.scene.local.getItems(i=>!!i.metadata['de.soenke.owlbear-prep/outline-local'])).length,mode:await OBR.tool.getActiveToolMode()},'*');
   const pk=e.data?.prepTestPick as {monster:string;kind:'token'|'stats'}|undefined;if(pk){roster.add(pk.monster);const m=roster.find(pk.monster);if(m)await roster.pick(m,pk.kind).catch(x=>status(String(x)));}
   if(typeof e.data?.prepTestClear==='number')await draft.clearPoints(e.data.prepTestClear);
   if(v){const x=el<HTMLSelectElement>(v.id);x.value=v.value;x.dispatchEvent(new Event('change'));}

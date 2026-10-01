@@ -35,7 +35,7 @@ Der Dev-Server muss auf deinem Rechner laufen, solange du die Extension nutzt. U
 
 1. **Karten** – Spielerkarte als Szene anlegen und in Owlbear aufs gedruckte Raster ausrichten, Rasterskala passend einstellen. Die DM-Karte (mit Raumnummern) unsichtbar daneben legen. Im Popover werden beide meist automatisch erkannt.
 2. **Abenteuer** – Markdown-Datei laden und Dungeon wählen. Die Extension schlägt je Raum Monster und Anzahl vor („je Punkt“ = ein Monster an jeder markierten Stelle) sowie Schatz- und Fallen-Notizen. Alles lässt sich bearbeiten.
-3. **Räume markieren** – Bei einem Raum auf **Markieren** klicken, dann auf der Spielerkarte jede Stelle anklicken (roter Punkt, für Spieler unsichtbar). **Alt+Klick** löscht einen Punkt, verschieben geht mit dem Bewegen-Werkzeug.
+3. **Räume markieren** – Bei einem Raum auf **Markieren** klicken, dann auf der Spielerkarte jede Stelle anklicken (roter Punkt, für Spieler unsichtbar). **Alt+Klick** löscht einen Punkt, verschieben geht mit dem Bewegen-Werkzeug. Optional je Raum einen **Umriss** zeichnen (Rechteck: zwei Ecken klicken; Punkte: Umriss anklicken, Enter schließt) – Grundlage für den späteren aufdeckbaren Nebel. Beim Markieren/Umriss schließt sich das Prep-Fenster, die Anleitung erscheint als Meldung, die Raumnummer steht am Prep-Symbol.
 4. **Monsterbilder** – Je Monster Tokenbild und Statblock:
    - **von der Festplatte** – das Token wird automatisch zugeschnitten (rund oder eckig),
    - **aus deiner Owlbear-Bibliothek** – ohne erneuten Upload,

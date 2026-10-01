@@ -5,7 +5,8 @@ export const DRAFT='de.soenke.owlbear-prep/draft',TOOL='de.soenke.owlbear-prep/m
 export const MARKING='de.soenke.owlbear-prep/marking';
 export type Point={u:number;v:number};
 // points: nur noch Altbestand; maßgeblich sind die Markierungs-Items auf der Karte (verschieb- und löschbar).
-export type DArea={no:string;name:string;monsters:Found[];names:string[];notes?:Note[];points?:Point[]};
+// outlines: Raumumrisse auf der Spielerkarte (Szenenkoordinaten), mehrere je Bereich möglich.
+export type DArea={no:string;name:string;monsters:Found[];names:string[];notes?:Note[];points?:Point[];outlines?:{x:number;y:number}[][]};
 export type Draft={dungeon:string;dmMap?:string;playerMap?:string;areas:DArea[]};
 // Markierung: verborgener Text; der markierte Punkt liegt bei Item-Position + (dx,dy).
 export type Mark={area:string;i:number;n?:number;dx:number;dy:number};

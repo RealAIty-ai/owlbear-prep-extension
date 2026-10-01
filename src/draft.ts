@@ -1,6 +1,7 @@
 import OBR from '@owlbear-rodeo/sdk';
 import {parseAdventure,type Dungeon,type Found} from './adventure';
 import {cells,mapRect,spread,type MapLike} from './scene';
+import {centroid} from './outline';
 import * as roster from './roster';
 // Entwurf je Szene: Bereiche aus dem Abenteuertext. Positionen kommen aus den Markierungs-Items auf der Karte
 // (gesetzt mit dem Werkzeug in background.ts, verschieb- und löschbar mit Owlbear-Mitteln).
@@ -32,11 +33,15 @@ export function init(status:(s:string)=>void){say=status;
   $<HTMLButtonElement>('savePlan').onclick=()=>{const t=$<HTMLTextAreaElement>('plan').value,a=h<HTMLAnchorElement>('a',{href:URL.createObjectURL(new Blob([t],{type:'application/json'})),download:`${JSON.parse(t).id??'plan'}.json`});a.click();URL.revokeObjectURL(a.href);};
 }
 // Markieren auf der Spielerkarte (für Spieler unsichtbar); die DM-Karte dient nur zum Nachschlagen der Raumnummern, Klicks dort gehen aber auch.
-export async function mark(i:number){if(!draft)return;draft.playerMap=$<HTMLSelectElement>('mapSel').value||draft.playerMap;draft.dmMap=$<HTMLSelectElement>('dmSel').value||draft.dmMap;
+export async function mark(i:number,mode:'click'|'rect'|'poly'='click'){if(!draft)return;draft.playerMap=$<HTMLSelectElement>('mapSel').value||draft.playerMap;draft.dmMap=$<HTMLSelectElement>('dmSel').value||draft.dmMap;
   if(!draft.playerMap)return say('Erst in Schritt 1 die Spielerkarte wählen.');current=i;await save();
-  await OBR.player.setMetadata({[MARKING]:{area:draft.areas[i].no}});await OBR.tool.activateTool(TOOL);
+  await OBR.player.setMetadata({[MARKING]:{area:draft.areas[i].no}});await OBR.tool.activateTool(TOOL);await OBR.tool.activateMode(TOOL,`${TOOL}/${mode}`);
   const [pm]=await OBR.scene.items.getItems([draft.playerMap]);if(pm){const b=mapRect(pm as unknown as MapLike,await OBR.scene.grid.getDpi());await OBR.viewport.animateToBounds({min:{x:b.x,y:b.y},max:{x:b.x+b.w,y:b.y+b.h},width:b.w,height:b.h,center:{x:b.x+b.w/2,y:b.y+b.h/2}});}
-  say(`Bereich ${draft.areas[i].no} (${draft.areas[i].name}): auf der Spielerkarte jede Stelle einmal anklicken (Raumnummern siehst du auf der DM-Karte). Alt+Klick auf eine Markierung löscht sie; verschieben geht mit dem Bewegen-Werkzeug.`);}
+  // Das offene Prep-Fenster würde den ersten Klick auf die Karte schlucken (Owlbear schließt es damit) – daher selbst schließen
+  // und die Anleitung als Owlbear-Meldung zeigen; das Prep-Symbol zeigt den Raum als Badge.
+  const a=draft.areas[i],tip=mode==='rect'?`Raum ${a.no} (${a.name}): erste Ecke anklicken, dann die gegenüberliegende. Weitere Rechtecke möglich, Esc bricht ab.`:mode==='poly'?`Raum ${a.no} (${a.name}): Umriss Punkt für Punkt anklicken, Enter oder Doppelklick schließt ab. Esc bricht ab, Rücktaste nimmt den letzten Punkt zurück.`:`Raum ${a.no} (${a.name}): jede Stelle auf der Spielerkarte anklicken. Alt+Klick löscht einen Punkt.`;
+  say(tip);await OBR.action.setBadgeText(a.no);await OBR.notification.show(tip,'INFO');await OBR.action.close();}
+export async function clearOutlines(i:number){if(!draft)return;draft.areas[i].outlines=[];await save();say(`Raum ${draft.areas[i].no}: Umrisse gelöscht.`);}
 export async function clearPoints(i:number){if(!draft)return;const a=draft.areas[i];
   const roots=(await OBR.scene.items.getItems(x=>(x.metadata[MARK_NS] as Mark|undefined)?.area===a.no)).map(x=>x.id);
   await OBR.scene.items.deleteItems((await OBR.scene.items.getItems(x=>roots.includes(x.id)||(!!x.metadata[MARK_LABEL]&&roots.includes(x.attachedTo??'')))).map(x=>x.id));}
@@ -50,7 +55,7 @@ async function recountBuilt(){const id=planId();built=id?(await OBR.scene.items.
 export function syncRoster(){if(!draft)return 0;return [...new Set(draft.areas.flatMap(a=>a.monsters.map(m=>m.type)))].filter(roster.add).length;}
 export function progress(){
   const types=[...new Set(draft?.areas.flatMap(a=>a.monsters.map(m=>m.type))??[])],r=(t:string)=>roster.find(t);
-  const unmarked=draft?.areas.filter(a=>a.monsters.length&&!counts.get(a.no)).map(a=>a.no)??[];
+  const unmarked=draft?.areas.filter(a=>a.monsters.length&&!counts.get(a.no)&&!a.outlines?.length).map(a=>a.no)??[];
   const noVal=types.filter(t=>!r(t)?.hp||r(t)?.ac===undefined),noTok=types.filter(t=>!r(t)?.token),noStat=types.filter(t=>!r(t)?.stats&&!r(t)?.noStats);
   const map=$<HTMLSelectElement>('mapSel'),mapName=map.selectedOptions[0]?.value?map.selectedOptions[0].text:'';
   const done=[!!mapName,!!draft,!!draft&&!unmarked.length,!!draft&&types.length>0&&!noVal.length&&!noTok.length,built>0];
@@ -79,14 +84,15 @@ export function render(){
       return h('div',{className:'row'},c,'×',t,h('label',{style:'margin:0'},e,' je Punkt'),x);});
     const add=h('button',{textContent:'+ Monster',className:'secondary small'});add.onclick=()=>{a.monsters.push({type:'Monster',count:1,each:false});void save();};
     const cl=h('button',{textContent:'Punkte löschen',className:'secondary small'});cl.onclick=()=>void clearPoints(i);
-    const n=counts.get(a.no)??0,has=a.monsters.length>0,dot=current===i?'now':!has?'':n?'ok':'warn';
+    const n=counts.get(a.no)??0,u=a.outlines?.length??0,has=a.monsters.length>0,dot=current===i?'now':!has?'':n||u?'ok':'warn';
     const who=has?a.monsters.map(m=>`${m.count}${m.each?' je Punkt':''}× ${m.type}`).join(', '):'keine Monster';
     const extra=[...(a.notes??[]).filter(x=>x.text).map(x=>x.kind==='Schatz'?'💰':'⚠️'),...(a.names.length?[`„${a.names.join(', ')}“`]:[])].join(' ');
     const mk=h('button',{textContent:current===i?'markiert …':'Markieren',className:has?'small':'secondary small'});mk.onclick=e=>{e.preventDefault();void mark(i);};
     box.append(h('details',{className:'item'},
-      h('summary',{},h('span',{className:`dot ${dot}`}),h('span',{className:'name'},`${a.no} · ${a.name}`,h('small',{},`${who} · ${n} Punkt${n===1?'':'e'} ${extra}`)),mk),
+      h('summary',{},h('span',{className:`dot ${dot}`}),h('span',{className:'name'},`${a.no} · ${a.name}`,h('small',{},`${who} · ${n} Punkt${n===1?'':'e'}${u?` · ${u} Umriss${u===1?'':'e'}`:''} ${extra}`)),mk),
       h('div',{className:'body'},...rows,...(a.notes??[]).map(x=>{const t=h<HTMLTextAreaElement>('textarea',{value:x.text,rows:4});t.onchange=()=>{x.text=t.value.trim();void save();};return h('details',{},h('summary',{},`${x.kind==='Schatz'?'💰 Schatz':'⚠️ Falle'} – verborgene Notiz`),t);}),
-        h('div',{className:'row'},add,cl))));
+        h('div',{className:'row'},add,cl),
+        h('div',{className:'row'},h('span',{className:'hint',textContent:'Umriss:'}),...(['rect','poly'] as const).map(m=>{const b=h('button',{textContent:m==='rect'?'Rechteck':'Punkte',className:'secondary small'});b.onclick=()=>void mark(i,m);return b;}),...(u?[(()=>{const b=h('button',{textContent:'Umrisse löschen',className:'secondary small'});b.onclick=()=>void clearOutlines(i);return b;})()]:[])))));
   });
 }
 // Erzeugt einen normalen Plan (v1): Monster je Markierung. Markierungen auf der Spielerkarte gelten direkt; auf der DM-Karte werden sie
@@ -103,6 +109,8 @@ export async function makePlan(){
   const others=(await OBR.scene.items.getItems(i=>i.layer==='MAP'&&i.type==='IMAGE'&&i.id!==player)).map(i=>mapRect(i as unknown as MapLike,dpi)),inside=(b:{x:number;y:number;w:number;h:number},p:{x:number;y:number})=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h;
   const pointsOf=new Map<string,{u:number;v:number}[]>();
   for(const m of await marks()){const dr=inside(r,m)?r:others.find(b=>inside(b,m)),p=dr?{u:(m.x-dr.x)/dr.w,v:(m.y-dr.y)/dr.h}:undefined;if(!p){off++;continue;}pointsOf.set(m.area,[...(pointsOf.get(m.area)??[]),p]);}
+  // Ohne Markierung: je Umriss dessen Mittelpunkt als Standort (Umrisse liegen auf der Spielerkarte).
+  for(const a of draft.areas)if(!pointsOf.get(a.no)?.length&&a.outlines?.length)pointsOf.set(a.no,a.outlines.map(o=>{const c=centroid(o);return {u:(c.x-r.x)/r.w,v:(c.y-r.y)/r.h};}));
   for(const a of draft.areas){if(!a.monsters.length)continue;
     const named=a.names.length===1&&a.monsters.length===1&&a.monsters[0].count===1?a.names[0]:undefined;
     const got=pointsOf.get(a.no)??[],pts=got.length?got:[undefined];if(!got.length)missing.push(a.no);

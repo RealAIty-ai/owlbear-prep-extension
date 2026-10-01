@@ -174,3 +174,10 @@ Aufbau live (Szene auf 10 ft umgestellt, Bilder/Statblocks vom DM gesetzt): 4 Sp
 - Ursache (behoben): Überlappende Zählläufe bei schnell aufeinanderfolgenden Änderungsmeldungen schrieben in dieselbe Liste. Jetzt zählt nur der jüngste Lauf; vor „Plan erzeugen/Aufbauen“ wird zusätzlich frisch gezählt.
 - Live nachgestellt: abwechselnd in Raum 3, 5, 1 markiert → Liste zeigt 2/2/2 korrekt; Testpunkte danach entfernt.
 - Nicht sicher geklärt: warum der damalige Aufbau die Punkte nicht sah (Plan liest die Markierungen frisch). Bei erneutem Auftreten: Status und Raumliste vor dem Aufbau melden.
+
+## Raumumrisse, 01.10.2026 (Branch feature/raumumrisse)
+
+- Neu: je Raum Umriss als Rechteck (zwei Ecken klicken) oder Punkte (Enter/Doppelklick schließt), am Raster eingerastet, gespeichert im Szenen-Entwurf (`outlines`). Anzeige nur beim GM als lokale, gestrichelte Fläche mit Raumnummer. Räume mit Umriss gelten als platziert; ohne Markierung stellt der Plan Monster in den Umriss-Mittelpunkt. 4 Geometrie-Tests.
+- Live bestätigt: Rechteck Raum 6 und Achteck Raum 5 gespeichert und nach Neuladen wieder angezeigt.
+- Gefundene und behobene Fehler: (1) `OBR.scene.grid.snapPosition` kam während des Ziehens nicht zurück → eigenes Einrasten. (2) Vorschau-Warteschlange konnte das Speichern blockieren → entkoppelt. (3) Doppelte Vorschau beim Start → Darstellung serialisiert. (4) Auf nicht gesperrten Tokens/Notizen liefert Owlbear nur `onToolDown`, kein Klick/Loslassen → Drücken gilt als Klick, Rechteck per zwei Klicks statt Ziehen. (5) **Der erste Klick nach „Markieren/Umriss“ schloss nur das offene Prep-Fenster** (Owlbear-Verhalten) – vermutlich auch Ursache für „Markierungen mehrfach setzen“ → Fenster wird beim Start selbst geschlossen, Anleitung als Owlbear-Meldung, Raumnummer als Badge am Prep-Symbol.
+- NICHT abschließend live geprüft (Browser-Verbindung abgebrochen): Rechteck für Raum 3 mit erstem Klick auf einem Token nach Fix (5), Punkte-Modus mit Doppelklick, Badge-Zurücksetzen beim Werkzeugwechsel.
