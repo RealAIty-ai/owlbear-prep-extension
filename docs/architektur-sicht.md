@@ -129,9 +129,42 @@ Grundlage: [Dynamic-Fog-Doku](https://docs.owlbear.rodeo/extensions/reference/dy
 | P4 | Smoke & Spectre: Format einer echten Obstruction lesen; funktioniert „Convert to Obstruction“ auf unseren Zeichnungen? | DM zeichnet eine Obstruction, wir lesen sie aus | Adapter B2 ja/nein |
 | P5 | Vertragen sich Smoke & Spectre und Owlbear Dynamic Fog in einem Raum? | beide aktiv | Warnhinweis |
 
+## 5a. Ergebnisse P1 und P2 (01.10.2026, live)
+
+Aufbau: GM-Ansicht in Chrome, Spieleransicht als Gast im eingebauten Browser der Claude-App (Beitritt vom GM bestätigt). Testform = schwarzes Rechteck auf `FOG` über der Wasserhöhle; danach Ausgangszustand wiederhergestellt (keine Nebelobjekte, `filled: false`).
+
+**P1 – Nebel-Verhalten (gemessen in der Spieleransicht):**
+
+| `fog.filled` | Testform | Spieler sieht |
+|---|---|---|
+| aus | sichtbar | dunkles, undurchsichtiges Rechteck – Fläche verdeckt |
+| aus | verborgen | nichts – Bereich frei |
+| an | verborgen | **alles dunkel außer der Fläche der Form** – verborgene Form wirkt als Fenster |
+| an | sichtbar | alles dunkel – Form gibt nichts frei |
+
+**Folgerung für Adapter A:** „Nebel füllen“ an + je Raum eine Form auf `FOG`, die zum **Aufdecken verborgen** wird (dann Fenster) und zum Zudecken wieder sichtbar. Kein Rest-Polygon nötig. Erfüllt die Abnahmekriterien 1 (Karte startet verdeckt), 2 (Räume einzeln freigeben), 3 (Nachbarn bleiben verdeckt).
+
+**P2 – Spieleransicht:** Der Spieler sieht nur die Spielerkarte. Nicht sichtbar: verborgene Monster-Tokens, Stat Bubbles, Statblock-Bilder neben der Karte, Schatz-/Fallen-Notizen, Raummarkierungen, die verborgene DM-Karte, die Ablage unter der Karte. Kriterium 4 (Monster nicht mit aufdecken) ist damit für die heutige Bauweise erfüllt – Aufdecken ändert nur Nebelformen.
+
+**Beobachtungen:**
+- Die Spieleransicht im eingebauten Browser übernahm Änderungen teils erst nach Neuladen (vermutlich Hintergrund-Drosselung des Tabs) – Prüfungen deshalb immer mit Neuladen.
+- Beim Spieler meldet Owlbear „Unable to load extension: localhost“: unsere Extension (inkl. Hintergrundskript) läuft nur beim GM. Für Adapter A unkritisch.
+- Wechselwirkung mit Owlbear Dynamic Fog (Formen auf `FOG` = Wände) weiterhin P3.
+
+## 5b. Abnahmekriterien Adapter A (aus externem Feedback übernommen)
+
+1. Die Karte startet für Spieler vollständig verdeckt.
+2. Räume und sinnvolle Gangabschnitte lassen sich einzeln freigeben.
+3. Nicht freigegebene Nachbarbereiche bleiben verdeckt.
+4. Verborgene Monster werden nicht versehentlich mit aufgedeckt.
+
+## 5c. Wände aus dem Kartenbild?
+
+Automatisches Erkennen von Wänden aus einem Kartenbild ist nicht vorgesehen: unzuverlässig und nicht zu gewährleisten. Wände kommen, wenn überhaupt, aus (a) den vom DM gezeichneten Umrissen oder (b) Kartendateien mit Wanddaten (UVTT/`.dd2vtt`, z. B. aus Dungeondraft; Smoke & Spectre kann solche Dateien importieren). Für offizielle Buchkarten gibt es solche Daten meist nicht – deshalb Adapter A zuerst.
+
 ## 6. Reihenfolge
 
-1. Prüfpunkte P1 + P2 (Nebel-Verhalten, Spieleransicht) – klein, ohne Umbau.
+1. ~~Prüfpunkte P1 + P2~~ – erledigt (5a).
 2. Raumumrisse erfassen (Werkzeug + Daten, Geometrie-Hilfen mit Tests).
 3. Adapter A: Nebel je Bereich, Schritt „Sicht“ im Popover, Rechtsklick Aufdecken/Zudecken, „Alles zudecken“.
 4. P6, dann Auto-Aufdecken beim Betreten (Schalter).
