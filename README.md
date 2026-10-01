@@ -41,7 +41,7 @@ Der Dev-Server muss auf deinem Rechner laufen, solange du die Extension nutzt. U
    - **aus deiner Owlbear-Bibliothek** – ohne erneuten Upload,
    - **aus einem Screenshot** mit Statblock *und* Bild (z. B. D&D-Beyond-Monsterseite) – die Extension trennt beides, stellt das Bild frei und macht ein Token daraus.
 
-   HP, RK und Größe werden aus dem Statblock gelesen (bitte prüfen). Neue Bilder: „Bilder in Owlbear hochladen“ → Owlbear-Dialog bestätigen → „Hochgeladene zuordnen“.
+   HP, RK und Größe werden aus dem Statblock gelesen (bitte prüfen) oder von Hand eingetragen. Wer kein Statblock-Bild auf der Karte möchte, nimmt den Haken „Statblock-Bild auf die Karte“ heraus – dann reichen HP/RK auf dem Token. **D&D Beyond ↗** öffnet die Monstersuche zum Namen, z. B. um Werte nachzuschlagen oder einen Screenshot zu machen. Neue Bilder: „Bilder in Owlbear hochladen“ → Owlbear-Dialog bestätigen → „Hochgeladene zuordnen“.
 5. **Aufbau** – Eine Zusammenfassung zeigt vorab, was fehlt (z. B. Monster ohne HP/RK oder ohne Bild, nicht markierte Räume, Rasterskala). **Aufbauen** bzw. **Neu aufbauen** erzeugt den Plan frisch und ersetzt einen bestehenden Aufbau erst, wenn der neue vollständig vorbereitet ist. Alles wird verborgen angelegt.
 
 ## Inhalte und Urheberrecht

@@ -49,7 +49,7 @@ export function syncRoster(){if(!draft)return 0;return [...new Set(draft.areas.f
 export function progress(){
   const types=[...new Set(draft?.areas.flatMap(a=>a.monsters.map(m=>m.type))??[])],r=(t:string)=>roster.find(t);
   const unmarked=draft?.areas.filter(a=>a.monsters.length&&!counts.get(a.no)).map(a=>a.no)??[];
-  const noVal=types.filter(t=>!r(t)?.hp||r(t)?.ac===undefined),noTok=types.filter(t=>!r(t)?.token),noStat=types.filter(t=>!r(t)?.stats);
+  const noVal=types.filter(t=>!r(t)?.hp||r(t)?.ac===undefined),noTok=types.filter(t=>!r(t)?.token),noStat=types.filter(t=>!r(t)?.stats&&!r(t)?.noStats);
   const map=$<HTMLSelectElement>('mapSel'),mapName=map.selectedOptions[0]?.value?map.selectedOptions[0].text:'';
   const done=[!!mapName,!!draft,!!draft&&!unmarked.length,!!draft&&types.length>0&&!noVal.length&&!noTok.length,built>0];
   (window as {prepSteps?:(d:boolean[])=>void}).prepSteps?.(done);
