@@ -45,6 +45,9 @@ Compiler/Build und Schema-Tests müssen grün sein. Danach echter Owlbear-Test m
 5. Agentenbrücke als eigenen vertikalen Test ergänzen, sobald der Executor zuverlässig ist.
 6. Quellenanalyse, Bildgenerierung und Raumzuordnung als Plan-Erzeuger aufsetzen.
 
+## Sichtsteuerung (Plan)
+Architektur und Prüfpunkte für aufdeckbaren Nebel und Wände/Token-Sicht: `docs/architektur-sicht.md`. Noch nicht umgesetzt.
+
 ## Repo und Veröffentlichung
 Öffentliches GitHub-Repo `RealAIty-ai/owlbear-prep-extension`, MIT-Lizenz, `main` geschützt (Änderungen per Pull Request). Das Repo enthält ausschließlich Code und eigene technische Beispiele – keine Secrets, Abenteuertexte, Karten oder fremden Token (lokal im ignorierten Ordner `abenteuer/`). Eine Veröffentlichung im Owlbear-Extension-Store bräuchte erreichbares HTTPS-Hosting und ist nicht umgesetzt.
 
