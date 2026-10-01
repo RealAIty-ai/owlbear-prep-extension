@@ -82,6 +82,14 @@ if(import.meta.env.DEV)addEventListener('message',async e=>{const d=e.data?.prep
       roster:(await OBR.room.getMetadata())['de.soenke.owlbear-prep/roster'],plan:input.value,status:el('status').textContent,sel:Array.from(el<HTMLSelectElement>('mapSel').options).map(o=>o.text),ready:await OBR.scene.isReady(),mapTypes:items.filter(i=>i.layer==='MAP').map(i=>i.type),lm:await listMaps().then(()=>'ok',x=>String(x)),marking:(await OBR.player.getMetadata())['de.soenke.owlbear-prep/marking'],activeTool:await OBR.tool.getActiveTool()}},'*');}
   const sp=e.data?.prepTestSplit as {monster:string;url:string}|undefined;if(sp&&e.source){roster.add(sp.monster);const b=await (await fetch(sp.url)).blob(),box=await roster.splitShot(sp.monster,new File([b],'shot.png',{type:b.type}));(e.source as Window).postMessage({prepSplit:box},'*');}
   const dm=e.data?.prepTestDelMark as {area:string;n:number}|undefined;if(dm){const MK='de.soenke.owlbear-prep/mark',root=(await OBR.scene.items.getItems(i=>{const m=i.metadata[MK] as {area?:string;n?:number}|undefined;return m?.area===dm.area&&m.n===dm.n;})).map(i=>i.id);await OBR.scene.items.deleteItems((await OBR.scene.items.getItems(i=>root.includes(i.id)||root.includes(i.attachedTo??''))).map(i=>i.id));}
+  // Prüfpunkt P1 (nur Dev): Testfläche auf FOG anlegen/umschalten/entfernen, Szenen-Nebel füllen; Zustand zurückmelden.
+  const fg=e.data?.prepTestFog as {act:string;x?:number;y?:number;w?:number;h?:number;filled?:boolean}|undefined;if(fg&&e.source){const T='de.soenke.owlbear-prep/p1test';
+    if(fg.act==='add')await OBR.scene.items.addItems([buildShape().shapeType('RECTANGLE').width(fg.w!).height(fg.h!).position({x:fg.x!,y:fg.y!}).layer('FOG').fillColor('#000000').fillOpacity(1).strokeWidth(0).name('P1 Test').metadata({[T]:true}).build()]);
+    if(fg.act==='toggle')await OBR.scene.items.updateItems(i=>!!i.metadata[T],its=>{for(const i of its)i.visible=!i.visible;});
+    if(fg.act==='remove')await OBR.scene.items.deleteItems((await OBR.scene.items.getItems(i=>!!i.metadata[T])).map(i=>i.id));
+    if(fg.act==='filled')await OBR.scene.fog.setFilled(!!fg.filled);
+    const t=await OBR.scene.items.getItems(i=>!!i.metadata[T]),fogItems=(await OBR.scene.items.getItems(i=>i.layer==='FOG')).length;
+    (e.source as Window).postMessage({prepFog:{filled:await OBR.scene.fog.getFilled(),color:await OBR.scene.fog.getColor(),test:t.map(i=>({visible:i.visible,pos:i.position})),fogItems,map:(await OBR.scene.items.getItems(i=>i.layer==='MAP')).map(i=>({name:i.name,pos:i.position}))}},'*');}
   if(typeof e.data?.prepTestStep==='number')wizard.go(e.data.prepTestStep);
   if(e.data?.prepTestAreas&&e.source)(e.source as Window).postMessage({prepAreas:Array.from(document.querySelectorAll('#areas summary small'),x=>x.textContent)},'*');
   if(typeof e.data?.prepTestRemove==='string')roster.removeByName(e.data.prepTestRemove);
