@@ -1,6 +1,6 @@
 # Architektur: Sichtsteuerung im Dungeon
 
-Stand: 01.10.2026 · Status: **Plan, nicht umgesetzt** · Prüfpunkte siehe Abschnitt 5.
+Stand: 01.10.2026 · Status: **Plan, nicht umgesetzt** · Entscheidung in 3a, Optimierungen in 3b, Prüfpunkte in 5 und 3c.
 
 ## 1. Ziel und Entscheidungsfrage
 
@@ -71,6 +71,49 @@ Battlemap ─────┘        │
 - Keine Änderung an Owlbear- oder Fremd-Extension-Daten außer dem jeweils dokumentierten bzw. geprüften Format.
 - Kein Aufdecken von Monstern über die Sichtsteuerung.
 
+## 3a. Entscheidung (01.10.2026)
+
+- **Erkundetes bleibt sichtbar.** Der DM deckt bei Bedarf wieder zu.
+- **Zuerst die einfachste Lösung: Adapter A (aufdeckbarer Nebel).**
+- Dynamische Sicht später nur mit **Owlbear Dynamic Fog** (nativ), nicht mit Smoke & Spectre – Grund: Rendergeschwindigkeit und Komplikationen im Spiel. Adapter B2 entfällt vorerst.
+
+## 3b. Optimierungsideen
+
+### Adapter A – aufdeckbarer Nebel
+
+| Idee | Nutzen | Technische Grundlage | Status |
+|---|---|---|---|
+| **Aufdecken direkt auf der Karte** per Rechtsklick auf die Nebelfläche („Aufdecken“/„Zudecken“) | kein Wechsel ins Popover während der Sitzung | `OBR.contextMenu.create` mit Filter auf unsere Metadaten | SDK geprüft |
+| **Automatisch aufdecken beim Betreten:** betritt ein Spieler-Token einen Raumumriss, wird der Raum aufgedeckt und bleibt es (Schalter, aus = nur manuell) | „Erkundetes bleibt sichtbar“ ohne Handarbeit; keine GPU-Last | `OBR.scene.items.onChange` + `Math2.pointInPolygon` im Hintergrundskript (nur beim GM) | SDK geprüft, Verhalten P6 |
+| **Nachbarbereiche optional mit aufdecken** (z. B. Gang vor der Tür) | weniger Klicks bei Gängen | Nachbarschaft aus gemeinsamen Umrisskanten | Idee |
+| **Wenige Nebelobjekte:** ein Polygon je Bereich, Punkte auf das Raster gerastet, kollineare Punkte zusammengefasst | schnelleres Zeichnen, sauberere Kanten | eigene Geometrie-Hilfen (testbar ohne Owlbear) | Idee |
+| **Grundnebel per `fog.filled`** statt eines riesigen Rest-Polygons – falls die Semantik passt | ein Objekt weniger, keine Lücken am Rand | `OBR.scene.fog.setFilled` | **P1 offen** |
+| **„Erkundet, aber niemand da“ abgedunkelt** (halbtransparente Fläche statt ganz offen) | Spieler sehen, wo sie waren, ohne Live-Gefühl | zweite, halbtransparente Fläche auf DRAWING-Layer | Idee, optional |
+| **Monster bleiben verborgen** beim Aufdecken; eigener Knopf „Monster in diesem Raum zeigen“ | kein versehentliches Verraten | Monster-Tokens per `planId`/Bereich auffindbar | Regel |
+| **Ein Klick „Alles zudecken“** für neue Sitzung/Rücksetzen | schneller Neustart | Batch-Update aller eigenen Nebelflächen | Idee |
+
+### Adapter B1 – Owlbear Dynamic Fog (später)
+
+Grundlage: [Dynamic-Fog-Doku](https://docs.owlbear.rodeo/extensions/reference/dynamic-fog/) (Performance-Abschnitt) und Quellcode der Extension.
+
+| Idee | Nutzen | Grundlage | Status |
+|---|---|---|---|
+| **Lichter mit `sourceRadius` 0** (harte Schatten) für alle Spieler-Tokens | schneller Renderpfad, viele Lichter möglich | Doku: „faster rendering path … sourceRadius of 0“ | Doku |
+| **Keine doppelseitigen Wände** | sonst erzwingt *eine* Wand den langsamen Pfad für alle Lichter | Doku: `doubleSided` → soft path für alle | Doku |
+| **Keine sekundären Lichter** (Lagerfeuer o. ä.) oder nur in kleinen Szenen | sekundäre Lichter verdoppeln die Renderzeit | Doku: zweiter Schatten-Pass | Doku |
+| **Wenige Wandpunkte:** gemeinsame Kanten benachbarter Räume nur einmal als Wand, Linien vereinfachen | weniger Wände = schneller | Wände entstehen aus jeder Zeichnung auf `FOG` | Idee, P3 |
+| **Nur ein Licht je Spieler-Token**, keine Lichter auf Monstern/Requisiten | Last skaliert mit Lichtzahl | Lichter = Tokens mit `rodeo.owlbear.dynamic-fog/light` | Doku/Quellcode |
+| **Hybrid für „Erkundetes bleibt sichtbar“:** Dynamic Fog zeigt die aktuelle Sicht, unsere Raum-Nebelflächen werden beim Betreten dauerhaft aufgedeckt (Idee aus Adapter A) | Persistenz, die Owlbear Dynamic Fog selbst nicht hat | `zIndex` ≥ 0 schneidet statischen Nebel weg; Auto-Aufdecken aus A | **P3/P6 offen** |
+| **Eine Quelle für Nebel und Wand:** die Raum-Nebelfläche auf `FOG` ist zugleich Wand; Türen über `doors`-Metadaten an derselben Fläche | kein doppelter Aufwand, Tür öffnen in Owlbear | Wände entstehen aus `FOG`-Zeichnungen unabhängig von ihrer Sichtbarkeit (Quellcode `WallReactor`) | **P3 offen** |
+| **Messung statt Annahme:** Bildrate in Testszene mit 4 Spieler-Lichtern, 1 Dungeon | belastbare Aussage „schnell genug“ | Browser-Leistungsmessung | P7 |
+
+## 3c. Zusätzliche Prüfpunkte
+
+| Nr | Frage | Wie prüfen |
+|---|---|---|
+| P6 | Auto-Aufdecken: Erkennt das Hintergrundskript zuverlässig, wenn ein Spieler-Token einen Umriss betritt (auch bei schnellem Ziehen)? Nur Spieler-Tokens, keine Monster? | Testszene, Token ziehen |
+| P7 | Bildrate mit Owlbear Dynamic Fog (4 Lichter, Dungeon mit ~10 Räumen) in GM- und Spieler-Browser | Leistungsmessung |
+
 ## 4. Testaufbau
 
 - **Spieleransicht:** Raum-Link im eingebauten Browser der Claude-App (getrennt von Chrome, ohne Login als Gast) als Spieler öffnen; GM-Ansicht parallel in Chrome. Das schließt auch die bisher offene Prüfung „sehen Spieler verborgene Monster?“.
@@ -88,14 +131,15 @@ Battlemap ─────┘        │
 
 ## 6. Reihenfolge
 
-1. Prüfpunkte P1 + P2 (klein, ohne Code-Umbau).
-2. Raumumrisse erfassen (Werkzeug + Daten).
-3. Adapter A: aufdeckbarer Nebel je Bereich, Schritt „Sicht“ im Popover.
-4. Prüfpunkt P3, dann Adapter B1 an Raum + Gang + Tür, dann ganzer Dungeon.
-5. P4/P5 und ggf. Adapter B2.
+1. Prüfpunkte P1 + P2 (Nebel-Verhalten, Spieleransicht) – klein, ohne Umbau.
+2. Raumumrisse erfassen (Werkzeug + Daten, Geometrie-Hilfen mit Tests).
+3. Adapter A: Nebel je Bereich, Schritt „Sicht“ im Popover, Rechtsklick Aufdecken/Zudecken, „Alles zudecken“.
+4. P6, dann Auto-Aufdecken beim Betreten (Schalter).
+5. Später: P3 + P7 an Raum + Gang + Tür, dann Adapter B1 (Owlbear Dynamic Fog) als Hybrid mit Auto-Aufdecken.
 
 ## 7. Offene Entscheidungen
 
-- Spielstil: erkundete Räume sichtbar lassen oder nur aktuelle Sicht? (Abschnitt 1)
-- Welche Nebel-Extension im Raum: Owlbear Dynamic Fog oder Smoke & Spectre (bereits installiert)?
+- ~~Spielstil~~ → erkundet bleibt sichtbar (3a).
+- ~~Nebel-Extension~~ → später Owlbear Dynamic Fog (3a).
 - Gänge als eigene aufdeckbare Abschnitte – automatisch vorschlagen oder nur von Hand?
+- Auto-Aufdecken beim Betreten standardmäßig an oder aus?
