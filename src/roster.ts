@@ -5,7 +5,10 @@ import {makeToken,type Shape} from './token';
 import {openSplitter} from './splitui';
 // Monsterliste pro Raum: Name, HP/RK, zugeordnete Owlbear-Bilder. Lokale Dateien nur bis zum Upload im Speicher.
 export type Asset={image:ImageContent;grid:ImageGrid};
-export type Monster={name:string;hp?:number;ac?:number;size?:number;token?:Asset;stats?:Asset};
+// noStats: kein Statblock-Bild auf die Karte – HP/RK auf dem Token reichen.
+export type Monster={name:string;hp?:number;ac?:number;size?:number;token?:Asset;stats?:Asset;noStats?:boolean};
+// D&D-Beyond-Suche zum Monsternamen (die Monster-URLs enthalten eine ID, die Suchseite nicht).
+export const ddbSearch=(name:string)=>`https://www.dndbeyond.com/monsters?filter-search=${encodeURIComponent(name)}`;
 const KEY='de.soenke.owlbear-prep/roster',PREFIX='Prep ';
 let roster:Monster[]=[],online=false;
 const pending=new Map<string,{token?:File;stats?:File}>();
@@ -58,6 +61,9 @@ function slot(m:Monster,kind:'token'|'stats',label:string){
 }
 function num(m:Monster,k:'hp'|'ac'|'size',label:string){const i=document.createElement('input');i.type='number';i.min=k==='hp'?'1':k==='size'?'0.5':'0';if(k==='size')i.step='0.5';i.value=m[k]?.toString()??'';
   i.onchange=()=>{const v=Number(i.value);m[k]=i.value&&(k==='size'||Number.isInteger(v))&&v>=Number(i.min)?v:undefined;void save();};return field(label,i);}
+// Schalter: Statblock-Bild auf die Karte legen (Standard) oder nur HP/RK auf dem Token.
+function sbox(m:Monster){const c=document.createElement('input');c.type='checkbox';c.checked=!m.noStats;c.onchange=()=>{m.noStats=!c.checked||undefined;void save();};
+  const l=document.createElement('label');l.style.margin='0';l.style.fontSize='13px';l.append(c,' Statblock-Bild auf die Karte');return l;}
 // Nach „Hochladen“ wartet die Zuordnung auf den DM (Owlbear-Dialog bestätigen) – der Knopf wird dann hervorgehoben.
 let awaitingLink=false;
 export function render(){
@@ -65,9 +71,9 @@ export function render(){
   const box=document.getElementById('roster')!;box.replaceChildren();
   const el=(tag:string,props:Record<string,unknown>={},...kids:(Node|string)[])=>{const e=Object.assign(document.createElement(tag),props);e.append(...kids);return e;};
   for(const m of roster){
-    const p=pending.get(norm(m.name)),okVal=!!m.hp&&m.ac!==undefined,okTok=!!m.token||!!p?.token,okStat=!!m.stats||!!p?.stats,complete=okVal&&okTok&&okStat&&!p?.token&&!p?.stats;
+    const p=pending.get(norm(m.name)),okVal=!!m.hp&&m.ac!==undefined,okTok=!!m.token||!!p?.token,okStat=m.noStats||!!m.stats||!!p?.stats,complete=okVal&&okTok&&okStat&&!p?.token&&!p?.stats;
     const src=p?.token?URL.createObjectURL(p.token):m.token?.image.url,img=el('img',{alt:'',...(src?{src}:{})});
-    const info=[okVal?`HP ${m.hp} · RK ${m.ac}`:'HP/RK fehlen',m.size?`${m.size*5} ft`:'',okTok?'Token ✓':'kein Token',okStat?'Statblock ✓':'kein Statblock'].filter(Boolean).join(' · ');
+    const info=[okVal?`HP ${m.hp} · RK ${m.ac}`:'HP/RK fehlen',m.size?`${m.size*5} ft`:'',okTok?'Token ✓':'kein Token',m.noStats?'ohne Statblock-Bild':okStat?'Statblock ✓':'kein Statblock'].filter(Boolean).join(' · ');
     const rm=el('button',{textContent:'Entfernen',className:'secondary small'}) as unknown as HTMLButtonElement;rm.onclick=()=>remove(m);
     // Größe zur Kontrolle in Fuß/Metern: 1 Feld = 5 ft ≈ 1,5 m.
     const sz=el('span',{className:'hint',textContent:m.size?`= ${m.size*5} ft ≈ ${(m.size*1.5).toLocaleString('de-DE')} m`:''});
@@ -76,9 +82,10 @@ export function render(){
     sf.onchange=()=>{const f=sf.files?.[0];if(f)splitShot(m,f).catch(e=>say(`Screenshot konnte nicht zerlegt werden: ${e instanceof Error?e.message:e}`));};
     box.append(el('details',{className:'item',open:!complete},
       el('summary',{},el('span',{className:`dot ${complete?'ok':'warn'}`}),img,el('span',{className:'name'},m.name,el('small',{},info))),
-      el('div',{className:'body'},slot(m,'token','Token'),slot(m,'stats','Statblock'),
+      el('div',{className:'body'},slot(m,'token','Token'),...(m.noStats?[]:[slot(m,'stats','Statblock')]),
         el('div',{className:'row'},el('span',{textContent:'Beides',style:'width:72px;font-size:13px'}),sl,el('span',{className:'hint',textContent:'Screenshot mit Statblock + Bild'})),
-        el('div',{className:'row'},num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),sz,rm))));
+        el('div',{className:'row'},num(m,'hp','HP'),num(m,'ac','RK'),num(m,'size','Felder'),sz,rm),
+        el('div',{className:'row'},sbox(m),el('a',{className:'btn secondary small',href:ddbSearch(m.name),target:'_blank',rel:'noopener',textContent:'D&D Beyond ↗',title:'Monster auf D&D Beyond suchen (z. B. für Werte oder einen Screenshot)'})))));
   }
   if(!roster.length)box.append(el('p',{className:'hint',textContent:'Noch keine Monster – erst in Schritt 2 einen Dungeon übernehmen oder unter „Weitere Optionen“ hinzufügen.'}));
   const n=[...pending.values()].reduce((k,e)=>k+(e.token?1:0)+(e.stats?1:0),0),up=document.getElementById('uploadAssets'),ln=document.getElementById('linkAssets');

@@ -159,3 +159,10 @@ Aufbau live (Szene auf 10 ft umgestellt, Bilder/Statblocks vom DM gesetzt): 4 Sp
 - Schritt 5: Zusammenfassung mit Warnungen (Karte, Rasterskala, Monsterzahl, nicht markierte Räume, fehlende HP/RK, Bilder, bestehender Aufbau). „Aufbauen/Neu aufbauen“ erzeugt den Plan frisch und löscht den alten Aufbau erst nach fehlerfreier Vorbereitung.
 - Live (Hook Horror Hunt): alle Schritte angesehen; Start direkt bei Schritt 5; „Neu aufbauen“ per echtem Klick → „Neu aufgebaut: 21 Elemente“.
 - NICHT live geprüft: Fehlerfall beim Neu-Aufbauen (alter Aufbau bleibt erhalten) – nur per Code-Reihenfolge sichergestellt.
+
+## Statblock optional, D&D-Beyond-Suche, 01.10.2026
+
+- Monster-Markdown (Monster Manual 2014, D&D-Beyond-Export) geprüft: enthält nur Regeltext und Namenslisten, keine Statblocks → HP/RK daraus nicht lesbar.
+- Je Monster Haken „Statblock-Bild auf die Karte“ (Standard an). Aus: Statblock-Zeile ausgeblendet, Zusammenfassung „ohne Statblock-Bild“, keine Warnung in Schritt 5, beim Aufbau kein Statblock-Bild.
+- Knopf „D&D Beyond ↗“: https://www.dndbeyond.com/monsters?filter-search=<Name> (Monster-URLs enthalten eine ID). Lokal geprüft: Link korrekt, Suchseite zeigt „Gelatinous Cube“ (Monster Manual).
+- NICHT live in Owlbear geprüft: Link-Klick aus dem Owlbear-Popover (iframe), Aufbau ohne Statblock-Bild.
