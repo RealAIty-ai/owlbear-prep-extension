@@ -166,3 +166,11 @@ Aufbau live (Szene auf 10 ft umgestellt, Bilder/Statblocks vom DM gesetzt): 4 Sp
 - Je Monster Haken „Statblock-Bild auf die Karte“ (Standard an). Aus: Statblock-Zeile ausgeblendet, Zusammenfassung „ohne Statblock-Bild“, keine Warnung in Schritt 5, beim Aufbau kein Statblock-Bild.
 - Knopf „D&D Beyond ↗“: https://www.dndbeyond.com/monsters?filter-search=<Name> (Monster-URLs enthalten eine ID). Lokal geprüft: Link korrekt, Suchseite zeigt „Gelatinous Cube“ (Monster Manual).
 - NICHT live in Owlbear geprüft: Link-Klick aus dem Owlbear-Popover (iframe), Aufbau ohne Statblock-Bild.
+
+## Fehler: Markierungen zeitweise nicht gezählt, 01.10.2026
+
+- Beobachtung (DM): Nach dem Markieren von 1–6 zeigte die Raumliste für 1, 3 und 5 „0 Punkte“, obwohl die Punkte auf der Karte lagen; der anschließende Aufbau legte Glabbagool und 4 Gray Ooze in die Ablage.
+- Befund: Markierungen in der Szene waren korrekt (Bereich, Nummer). Nach Neuladen stimmten Zählung und Plan.
+- Ursache (behoben): Überlappende Zählläufe bei schnell aufeinanderfolgenden Änderungsmeldungen schrieben in dieselbe Liste. Jetzt zählt nur der jüngste Lauf; vor „Plan erzeugen/Aufbauen“ wird zusätzlich frisch gezählt.
+- Live nachgestellt: abwechselnd in Raum 3, 5, 1 markiert → Liste zeigt 2/2/2 korrekt; Testpunkte danach entfernt.
+- Nicht sicher geklärt: warum der damalige Aufbau die Punkte nicht sah (Plan liest die Markierungen frisch). Bei erneutem Auftreten: Status und Raumliste vor dem Aufbau melden.
